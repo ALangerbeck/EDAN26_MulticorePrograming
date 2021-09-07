@@ -1,0 +1,6 @@
+[error] /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/preflow.scala:152:16: type mismatch;
+[error]  found   : Source.type
+[error]  required: Boolean
+[error] 		if(!(sink || Source)){
+[error] 		             ^
+[error] one error found
