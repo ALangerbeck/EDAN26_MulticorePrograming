@@ -1,0 +1,36 @@
+1. If you use a controller, how can it know that no node is active? If you
+don’t use a controller for that, how do the actors agree on terminating the
+algorithm?
+
+We dont keep track of the active note, when we start we keep track of how much total excess 
+we have in the system, everytime exess leaves the system ie. through sin or source we remove it
+when this total excess is zero we are done
+
+2. How many push messages can a node have in progress concurrently in
+your solution? (one is OK)
+
+no upper limit, but will only send out number of push messages to a maximum number
+of neighboring nodes. 
+
+3. How do you ensure that a node never gets a negative excess preflow?
+(except possibly for the source depending on how you implement it)
+
+when we activate a node we dont push if we would push more than we have
+
+4. With millions of nodes in a graph, it would be bad to have one JVM thread
+per actor, so how is it done?
+
+An actor shares thread with each other and only use a thread when actually doing something. When a actor is done the thread "backs out" and goes to another active actor.
+
+To work around the limitations of the JVM, systems like Kilim and Erjang intersperse special “pause” points throughout methods executed by actors. A pause point is essentially a point where the executing thread checks whether or not it’s time to switch to a different actor: if so, the thread “backs out” of the current method by unwinding the stack, saving all necessary state (essentially, the contents of local variables) as it goes. Once this is completed, the thread chooses another actor to execute, and “unpauses” it by winding its saved state back onto the stack.
+
+5. Explain your source code.
+
+6. Did you find a way to improve the performance of your program over the
+first correct version?
+
+even though som actors may still be locking for edges to push across our end condition signifies when we are done and stops the program.
+
+7. For which types of applications would you consider using Akka and why?
+	
+When you have a problem that is easy to spilt into smaller tasks that can be done concurently. When you start out building a concurent program, hard to change to akka/actor model midway through. A large in nodes.
