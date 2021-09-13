@@ -50,7 +50,7 @@ class Graph {
 	{
 		int		d;	/* remaining capacity of the edge. */
 
-		System.Out.println("Enter push")
+		System.out.println("Enter push");
 		//pr("push from %d to %d: ", id(g, u), id(g, v));
 		//pr("f = %d, c = %d, so ", e->f, e->c);
 		
@@ -165,6 +165,7 @@ class Edge {
 class Preflow {
 	public static void main(String args[])
 	{
+		//System.out.println("What tha fack");
 		double	begin = System.currentTimeMillis();
 		Scanner s = new Scanner(System.in);
 		int	n;

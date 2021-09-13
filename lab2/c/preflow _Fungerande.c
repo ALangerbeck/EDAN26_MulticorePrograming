@@ -81,9 +81,6 @@ struct node_t {
 	int		e;	/* excess flow.			*/
 	list_t*		edge;	/* adjacency list.		*/
 	node_t*		next;	/* with excess preflow.		*/
-	pthread_mutex_t    A;
-	pthread_mutex_init(u.A, NULL);
-	
 };
 
 struct edge_t {
@@ -372,14 +369,7 @@ static node_t* leave_excess(graph_t* g)
 }
 
 static void* push(graph_t* g, node_t* u, node_t* v, edge_t* e)
-	
-	if (isU(u, e) == 1) {
-	pthread_mutex_lock(&u->A);
-	}
-	else {
-	other(u , e).pthread_mutex_lock;
-	}
-{	
+{
 	int		d;	/* remaining capacity of the edge. */
 
 	pr("push from %d to %d: ", id(g, u), id(g, v));
@@ -449,7 +439,6 @@ static void* preflow(void*/*graph_t**/ gg)
 	edge_t*		e;
 	list_t*		p;
 	int		b;
-	int 		pending = 0;
 
 	s = g->s;
 	s->h = g->n;
@@ -471,12 +460,38 @@ static void* preflow(void*/*graph_t**/ gg)
 	
 	/* then loop until only s and/or t have excess preflow. */
 
-		//pthrad_t[];
+	while ((u = leave_excess(g)) != NULL) {
 
-	while ( ((u = leave_excess(g)) != NULL) && ((s->e + s->e) == 0)) {
-		if(pending < MAX_NUMBER_OF_THREADS){
-			//	pthread_create()
+		/* u is any node with excess preflow. */
+
+		pr("selected u = %d with ", id(g, u));
+		pr("h = %d and e = %d\n", u->h, u->e);
+
+		v = NULL;
+		p = u->edge;
+
+		while (p != NULL) {
+			e = p->edge;
+			p = p->next;
+
+			if (u == e->u) {
+				v = e->v;
+				b = 1;
+			} else {
+				v = e->u;
+				b = -1;
+			}
+
+			if (u->h > v->h && b * e->f < e->c)
+				break;
+			else
+				v = NULL;
 		}
+
+		if (v != NULL)
+			push(g, u, v, e);
+		else
+			relabel(g, u);
 
 		
 
@@ -548,36 +563,8 @@ static void activate_node(node_t* node_u, graph_t* g){
 		if (v != NULL)
 			push(g, u, v, e);
 		else
-		
-
-	s = g->s;
-	s->h = g->n;
-
-	p = s->edge;
-
-	/* start by pushing as much as possible (limited by
-	 * the edge capacity) from the source to its neighbors.
-	 *
-	 */
-
-	while (p != NULL) {
-		e = p->edge;
-		p = p->next;
-
-		s->e += e->c;
-		push(g, s, other(s, e), e);
-	}	relabel(g, u);
+			relabel(g, u);
 }
- 
-int isU(node_t* u, edge_t* e) {
- 	if (u == e->u) {
- 		return 1;
-	}
-	else {
-		return 0;
-	}
-
- }
 
 
 int main(int argc, char* argv[])
