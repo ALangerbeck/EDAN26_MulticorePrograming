@@ -1,1 +1,75 @@
-[debug] Jar uptodate: /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/preflow_2.13-1.0.jar
+[debug] Packaging /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/preflow_2.13-1.0.jar ...
+[debug] Input file mappings:
+[debug] 	Maxflow$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Maxflow$.class
+[debug] 	Node$$anonfun$receive$1.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Node$$anonfun$receive$1.class
+[debug] 	Control.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Control.class
+[debug] 	Maxflow.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Maxflow.class
+[debug] 	Sink.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Sink.class
+[debug] 	Control$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Control$.class
+[debug] 	Print.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Print.class
+[debug] 	Activate.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Activate.class
+[debug] 	Awnser$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Awnser$.class
+[debug] 	Push.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Push.class
+[debug] 	Hello.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Hello.class
+[debug] 	Out.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Out.class
+[debug] 	Debug.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Debug.class
+[debug] 	Start$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Start$.class
+[debug] 	Out$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Out$.class
+[debug] 	Push$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Push$.class
+[debug] 	Excess$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Excess$.class
+[debug] 	Awnser.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Awnser.class
+[debug] 	Source$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Source$.class
+[debug] 	Excess.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Excess.class
+[debug] 	Preflow.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Preflow.class
+[debug] 	Hello$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Hello$.class
+[debug] 	Source.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Source.class
+[debug] 	Activate$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Activate$.class
+[debug] 	Flow.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Flow.class
+[debug] 	Print$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Print$.class
+[debug] 	main$delayedInit$body.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/main$delayedInit$body.class
+[debug] 	main$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/main$.class
+[debug] 	Preflow$$anonfun$receive$2.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Preflow$$anonfun$receive$2.class
+[debug] 	Debug$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Debug$.class
+[debug] 	main.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/main.class
+[debug] 	Flow$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Flow$.class
+[debug] 	Edge.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Edge.class
+[debug] 	Sink$.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Sink$.class
+[debug] 	Start.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Start.class
+[debug] 	Node.class
+[debug] 	  /home/johngregory/Documents/EDAN26 Multicore/Labs/lab1/target/scala-2.13/classes/Node.class
+[debug] Done packaging.

@@ -33,7 +33,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-//#include "timebase.h"
 
 #define PRINT		0	/* enable/disable prints. */
 
@@ -520,8 +519,6 @@ static void free_graph(graph_t* g)
 
 int main(int argc, char* argv[])
 {
-	//init_timebase();
-
 	FILE*		in;	/* input file set to stdin	*/
 	graph_t*	g;	/* undirected graph. 		*/
 	int		f;	/* output from preflow.		*/
@@ -543,14 +540,9 @@ int main(int argc, char* argv[])
 
 	fclose(in);
 
-	//double begin = timebase_sec();
-
 	f = preflow(g);
 
-	//double end = timebase_sec();
-
 	printf("f = %d\n", f);
-	//printf("t = %lf s\n", end-begin);
 
 	free_graph(g);
 

@@ -34,3 +34,6 @@ even though som actors may still be locking for edges to push across our end con
 7. For which types of applications would you consider using Akka and why?
 	
 When you have a problem that is easy to spilt into smaller tasks that can be done concurently. When you start out building a concurent program, hard to change to akka/actor model midway through. A large in nodes.
+
+General Lab Questions:
+Is timebase specifically for power? since i get errors

@@ -36,7 +36,7 @@ class Node(val index: Int) extends Actor {
 	var	source:Boolean	= false		/* true if we are the source.					*/
 	var	sink:Boolean	= false		/* true if we are the sink.					*/
 	var	edge: List[Edge] = Nil	/* adjacency list with edge objects shared with other nodes.	*/
-	var	debug = false			/* to enable printing.						*/
+	var	debug = true			/* to enable printing.						*/
 	var pending = 0;
 	var willReorder = false
 	var int_numOfReorders = 0;
@@ -195,7 +195,7 @@ class Preflow extends Actor
 	var	node:Array[ActorRef]	= null	/* vertices in the graph.					*/
 	var	ret:ActorRef 		= null	/* Actor to send result to.					*/
 	var totalExcess = 0;
-	var debug = false
+	var debug = true
 
 	def enter(func: String): Unit = { if (debug) { println("Control enters " + func)}}
 	def exit(func: String): Unit = { if (debug) { println("Control exits " + func)}}

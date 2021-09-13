@@ -5,6 +5,8 @@ import java.util.LinkedList;
 
 import java.io.*;
 
+
+
 class Graph {
 
 	int	s;
@@ -41,16 +43,58 @@ class Graph {
 
 	void relabel(Node u)
 	{
+		u.h += 1;
 	}
 
-	void push(Node u, Node v, Edge a)
+	void push(Node u, Node v, Edge e)
 	{
+		int		d;	/* remaining capacity of the edge. */
+
+		System.Out.println("Enter push")
+		//pr("push from %d to %d: ", id(g, u), id(g, v));
+		//pr("f = %d, c = %d, so ", e->f, e->c);
+		
+		if (u == e.u) {
+			d = Math.min(u.e, e.c - e.f);
+			e.f += d;
+		} else {
+			d = Math.min(u.e, e.c + e.f);
+			e.f -= d;
+		}
+
+		//pr("pushing %d\n", d);
+
+		u.e -= d;
+		v.e += d;
+
+		/* the following are always true. */
+
+		assert d >= 0;
+		assert u.e >= 0;
+		assert Math.abs(e.f) <= e.c;
+
+		if (u.e > 0) {
+
+			/* still some remaining so let u push more. */
+
+			enter_excess(u);
+		}
+
+		if (v.e == d) {
+
+			/* since v has d excess now it had zero before and
+			 * can now push.
+			 *
+			 */
+
+			enter_excess(v);
+		}
 	}
 
 	int preflow(int s, int t)
 	{
 		ListIterator<Edge>	iter;
-		int			b;
+		int				b;
 		Edge			a;
 		Node			u;
 		Node			v;
