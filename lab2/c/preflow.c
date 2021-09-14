@@ -441,78 +441,6 @@ static node_t* other(node_t* u, edge_t* e)
 	else
 		return e->u;
 }
-	
-static void* preflow(void*/*graph_t**/ gg)
-{	
-	graph_t*g = gg;
-
-	node_t*		s;
-	node_t*		u;
-	node_t*		v;
-	edge_t*		e;
-	list_t*		p;
-	int		b;
-	int 		pending = 0;
-
-	s = g->s;
-	s->h = g->n;
-
-	p = s->edge;
-
-	/* start by pushing as much as possible (limited by
-	 * the edge capacity) from the source to its neighbors.
-	 *
-	 */
-
-	while (p != NULL) {
-		e = p->edge;
-		p = p->next;
-
-		s->e += e->c;
-		push(g, s, other(s, e), e);
-	}
-	
-	/* then loop until only s and/or t have excess preflow. */
-
-	pthread_t threads[MAX_NUMBER_OF_THREADS];
-
-	while ( ((u = leave_excess(g)) != NULL) && ((s->e + s->e) == 0)) {
-		if(pending < MAX_NUMBER_OF_THREADS){
-
-			struct { node_t* node; graph_t* graph; } arg = { u, g };
-
-			 if (pthread_create(&threads[pending], NULL, activate_node, &arg) != 0){
-			 	error("pthread_create failed");	
-			 }
-     
-		}
-
-		
-
-	}
-		RESULT_PREFLOW = (g->t->e);
-
-	return	 &RESULT_PREFLOW;
-}
-
-static void free_graph(graph_t* g)
-{
-	int		i;
-	list_t*		p;
-	list_t*		q;
-
-	for (i = 0; i < g->n; i += 1) {
-		p = g->v[i].edge;
-		while (p != NULL) {
-			q = p->next;
-			free(p);
-			p = q;
-		}
-	}
-	free(g->v);
-	free(g->e);
-	free(g);
-}
 
 static void activate_node(node_t* node_u, graph_t* g){
 
@@ -562,6 +490,84 @@ static void activate_node(node_t* node_u, graph_t* g){
 
 	
 }
+	
+static void* preflow(void*/*graph_t**/ gg)
+{	
+	graph_t*g = gg;
+
+	node_t*		s;
+	node_t*		u;
+	node_t*		v;
+	edge_t*		e;
+	list_t*		p;
+	int		b;
+	int 		pending = 0;
+
+	s = g->s;
+	s->h = g->n;
+
+	p = s->edge;
+
+	/* start by pushing as much as possible (limited by
+	 * the edge capacity) from the source to its neighbors.
+	 *
+	 */
+
+	while (p != NULL) {
+		e = p->edge;
+		p = p->next;
+
+		s->e += e->c;
+		push(g, s, other(s, e), e);
+	}
+	
+	/* then loop until only s and/or t have excess preflow. */
+
+	pthread_t threads[MAX_NUMBER_OF_THREADS];
+
+	if (pthread_create(&threads[pending], NULL, activate_node, &arg) != 0){
+			 	error("pthread_create failed");	
+			 }
+
+	while ( ((u = leave_excess(g)) != NULL) && ((s->e + s->e) == 0)) {
+		if(pending < MAX_NUMBER_OF_THREADS){
+
+			struct { node_t* node; graph_t* graph; } arg = { u, g };
+
+			if (pthread_create(&threads[pending], NULL, activate_node, &arg) != 0){
+			 	error("pthread_create failed");	
+			 }
+     
+		}
+
+		
+
+	}
+		RESULT_PREFLOW = (g->t->e);
+
+	return	 &RESULT_PREFLOW;
+}
+
+static void free_graph(graph_t* g)
+{
+	int		i;
+	list_t*		p;
+	list_t*		q;
+
+	for (i = 0; i < g->n; i += 1) {
+		p = g->v[i].edge;
+		while (p != NULL) {
+			q = p->next;
+			free(p);
+			p = q;
+		}
+	}
+	free(g->v);
+	free(g->e);
+	free(g);
+}
+
+
  
 int isU(node_t* u, edge_t* e) {
  	if (u == e->u) {
