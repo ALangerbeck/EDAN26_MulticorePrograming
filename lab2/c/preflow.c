@@ -35,7 +35,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#define PRINT		0	/* enable/disable prints. */
+#define PRINT		1	/* enable/disable prints. */
 
 /* the funny do-while next clearly performs one iteration of the loop.
  * if you are really curious about why there is a loop, please check
@@ -56,6 +56,7 @@
 /* GlOBAL VARABLIES */
 int RESULT_PREFLOW;
 int MAX_NUMBER_OF_THREADS = 1;
+int intActiveThreads = 0;
 
 /* introduce names for some structs. a struct is like a class, except
  * it cannot be extended and has no member methods, and everything is
@@ -101,6 +102,11 @@ struct graph_t {
 	node_t*		s;	/* source.			*/
 	node_t*		t;	/* sink.			*/
 	node_t*		excess;	/* nodes with e > 0 except s,t.	*/
+};
+
+struct thread_Arg{
+	node_t*	argNode;
+	graph_t* argGraph;
 };
 
 /* a remark about C arrays. the phrase above 'array of n nodes' is using
@@ -442,12 +448,15 @@ static node_t* other(node_t* u, edge_t* e)
 		return e->u;
 }
 
-static void activate_node(node_t* node_u, graph_t* g){
+static void *activate_node(void *arguments){
+
 
 
 	//STOLEN from old Preflow
-	node_t*		s;
-	node_t*		u;
+	struct thread_Arg *args = arguments;
+
+	graph_t*	g = args -> argGraph;
+	node_t*		u = args -> argNode;
 	node_t*		v;
 	edge_t*		e;
 	list_t*		p;
@@ -486,8 +495,9 @@ static void activate_node(node_t* node_u, graph_t* g){
 			push(g, u, v, e);
 		else
 			relabel(g, u);
-		
-
+	
+	intActiveThreads -= 1; //Need some kind of lock here
+	pr("Thread done\n");
 	
 }
 	
@@ -501,7 +511,6 @@ static void* preflow(void*/*graph_t**/ gg)
 	edge_t*		e;
 	list_t*		p;
 	int		b;
-	int 		pending = 0;
 
 	s = g->s;
 	s->h = g->n;
@@ -525,19 +534,25 @@ static void* preflow(void*/*graph_t**/ gg)
 
 	pthread_t threads[MAX_NUMBER_OF_THREADS];
 
-	if (pthread_create(&threads[pending], NULL, activate_node, &arg) != 0){
+
+	while ((u = leave_excess(g)) != NULL /*or a thread is running*/) {
+		//pr("new cycle\n");
+		if(intActiveThreads < MAX_NUMBER_OF_THREADS){
+			pr("Starting to create new thread\n");
+
+			struct thread_Arg args;
+			args.argNode = u;
+			args.argGraph = g;
+
+			if (pthread_create(&threads[intActiveThreads], NULL, activate_node, (void *)&args) != 0){
 			 	error("pthread_create failed");	
-			 }
-
-	while ( ((u = leave_excess(g)) != NULL) && ((s->e + s->e) == 0)) {
-		if(pending < MAX_NUMBER_OF_THREADS){
-
-			struct { node_t* node; graph_t* graph; } arg = { u, g };
-
-			if (pthread_create(&threads[pending], NULL, activate_node, &arg) != 0){
-			 	error("pthread_create failed");	
+			 }else{
+			 	pr("Thread created\n");
+			 	intActiveThreads +=1;
 			 }
      
+		}else{
+			if (u != NULL) enter_excess(g,u);
 		}
 
 		
