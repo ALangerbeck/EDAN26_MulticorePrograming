@@ -57,6 +57,8 @@
 int RESULT_PREFLOW;
 int MAX_NUMBER_OF_THREADS = 1;
 int intActiveThreads = 0;
+pthread_mutex_t lock_intActiveThread;
+
 
 /* introduce names for some structs. a struct is like a class, except
  * it cannot be extended and has no member methods, and everything is
@@ -448,6 +450,26 @@ static node_t* other(node_t* u, edge_t* e)
 		return e->u;
 }
 
+static void incrementActiveThreads(int intPlusMinus){
+	pthread_mutex_lock(&lock_intActiveThread);
+	if(intPlusMinus == 1){
+		intActiveThreads +=1;
+	}else if(intPlusMinus == -1){
+		intActiveThreads -=1;
+	}else{
+
+	}
+	pthread_mutex_unlock(&lock_intActiveThread);
+
+}
+
+static int numOfTheadsRunning(){
+	pthread_mutex_lock(&lock_intActiveThread);
+	int returnValue = intActiveThreads;
+	pthread_mutex_unlock(&lock_intActiveThread);
+	return returnValue;
+}
+
 static void *activate_node(void *arguments){
 
 
@@ -496,7 +518,7 @@ static void *activate_node(void *arguments){
 		else
 			relabel(g, u);
 	
-	intActiveThreads -= 1; //Need some kind of lock here
+	incrementActiveThreads(-1); //Need some kind of lock here
 	pr("Thread done\n");
 	
 }
@@ -535,9 +557,9 @@ static void* preflow(void*/*graph_t**/ gg)
 	pthread_t threads[MAX_NUMBER_OF_THREADS];
 
 
-	while ((u = leave_excess(g)) != NULL /*or a thread is running*/) {
+	while (((u = leave_excess(g)) != NULL) || (numOfTheadsRunning() > 0) /*or a thread is running*/) {
 		//pr("new cycle\n");
-		if(intActiveThreads < MAX_NUMBER_OF_THREADS){
+		if(numOfTheadsRunning() < MAX_NUMBER_OF_THREADS){
 			pr("Starting to create new thread\n");
 
 			struct thread_Arg args;
@@ -548,7 +570,7 @@ static void* preflow(void*/*graph_t**/ gg)
 			 	error("pthread_create failed");	
 			 }else{
 			 	pr("Thread created\n");
-			 	intActiveThreads +=1;
+			 	incrementActiveThreads(1);
 			 }
      
 		}else{
@@ -627,6 +649,11 @@ int main(int argc, char* argv[])
 	//pthread_join(controller,&temp);
 
 	//pthread_exit(temp);
+
+	if(pthread_mutex_init(&lock_intActiveThread,NULL) != 0){
+		pr("mutexInit for lock_intActiveThread has failed\n");
+		return 1;
+	}
 	
 	
 	int *tempResult = preflow(g);//temp;
