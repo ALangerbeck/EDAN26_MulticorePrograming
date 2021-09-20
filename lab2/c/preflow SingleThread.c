@@ -38,7 +38,7 @@
 #define PRINT		0	/* enable/disable prints. */
 
 //GLOBALS
-#define NUMBER_OF_THREADS  (12)
+#define NUMBER_OF_THREADS  (1)
 
 
 /* the funny do-while next clearly performs one iteration of the loop.
@@ -85,7 +85,6 @@ struct node_t {
 	int		e;	/* excess flow.			*/
 	list_t*		edge;	/* adjacency list.		*/
 	node_t*		next;	/* with excess preflow.		*/
-	pthread_mutex_t a;
 };
 
 struct edge_t {
@@ -104,7 +103,6 @@ struct graph_t {
 	node_t*		t;	/* sink.			*/
 	node_t*		excess;	/* nodes with e > 0 except s,t.	*/
 	pthread_mutex_t graph_lock;
-	pthread_mutex_t excess_lock;
 };
 
 struct thread_Arg{
@@ -166,12 +164,8 @@ static int id(graph_t* g, node_t* v)
 	 * divide by the size of the array element.
 	 *
 	 */
-	pthread_mutex_lock(&g->graph_lock);
 
-	int returnId = v - g->v;
-
-	pthread_mutex_unlock(&g->graph_lock);
-	return returnId;
+	return v - g->v;
 }
 #endif
 
@@ -353,12 +347,6 @@ static graph_t* new_graph(FILE* in, int n, int m)
 		connect(u, v, c, g->e+i);
 	}
 
-	
-	for (i = 0 ; i < n ; i +=1 ) { 
-    		pthread_mutex_init(&g->v[i].a, NULL);
-
-        }
-
 	return g;
 }
 
@@ -373,18 +361,14 @@ static void enter_excess(graph_t* g, node_t* v)
 	 *
 	 */
 
-	pthread_mutex_lock(&g->excess_lock);
-
 	if (v != g->t && v != g->s) {
 		v->next = g->excess;
 		g->excess = v;
 	}
-	pthread_mutex_unlock(&g->excess_lock);
 }
 
 static node_t* leave_excess(graph_t* g)
 {
-	pthread_mutex_lock(&g->excess_lock);
 	node_t*		v;
 
 	/* take any node from the set of nodes with excess preflow
@@ -396,25 +380,12 @@ static node_t* leave_excess(graph_t* g)
 
 	if (v != NULL)
 		g->excess = v->next;
-	
-	pthread_mutex_unlock(&g->excess_lock);
-	
+
 	return v;
 }
 
 static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 {
-	if (u < v) {
-            			pthread_mutex_lock(&u->a);
-            			pthread_mutex_lock(&v->a);
-            		}
-
-            		else {
-            			pthread_mutex_lock(&v->a);
-            			pthread_mutex_lock(&u->a);
-            		}
-
-
 	int		d;	/* remaining capacity of the edge. */
 
 	pr("push from %d to %d: ", id(g, u), id(g, v));
@@ -455,20 +426,14 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 
 		enter_excess(g, v);
 	}
-
-	pthread_mutex_unlock(&v->a);
-        pthread_mutex_unlock(&u->a);
-
 }
 
 static void relabel(graph_t* g, node_t* u)
-{	
-	pthread_mutex_lock(&u->a);
+{
 	u->h += 1;
 
 	pr("relabel %d now h = %d\n", id(g, u), u->h);
-	
-	pthread_mutex_unlock(&u->a);
+
 	enter_excess(g, u);
 }
 
@@ -490,19 +455,14 @@ void* work(void* argStruct)
 	edge_t*		e;
 	list_t*		p;
 	int		b;
-	int index = args->index;
-	pr("Created thread %d\n",index);
+
 
 	while ((u = leave_excess(g)) != NULL) {
-
 
 		/* u is any node with excess preflow. */
 
 		pr("selected u = %d with ", id(g, u));
-
-		pthread_mutex_lock(&u->a);
 		pr("h = %d and e = %d\n", u->h, u->e);
-		pthread_mutex_unlock(&u->a);
 
 		/* if we can push we must push and only if we could
 		 * not push anything, we are allowed to relabel.
@@ -526,44 +486,18 @@ void* work(void* argStruct)
 				v = e->u;
 				b = -1;
 			}
-			
-			if (u < v) {
-            			pthread_mutex_lock(&u->a);
-            			pthread_mutex_lock(&v->a);
-            		}
 
-            		else {
-            			pthread_mutex_lock(&v->a);
-            			pthread_mutex_lock(&u->a);
-            		}
-			if (u->h > v->h && b * e->f < e->c){
-
-            			pthread_mutex_unlock(&v->a);
-            			pthread_mutex_unlock(&u->a);
-
+			if (u->h > v->h && b * e->f < e->c)
 				break;
-
-
-			}else{
-				pthread_mutex_unlock(&v->a);
+			else
 				v = NULL;
-            			pthread_mutex_unlock(&u->a);	
-            		}
-
-
 		}
 
-		if (v != NULL){
+		if (v != NULL)
 			push(g, u, v, e);
-		}
-		else{
+		else
 			relabel(g, u);
-		}
-
-		
-
 	}
-	pr("Thread %d terminared\n",index);
 
 }
 
@@ -611,14 +545,13 @@ static int preflow(graph_t* g)
 
 	pr("Begining Thread Creation\n");
 	for (i = 0; i < NUMBER_OF_THREADS; i += 1){
-		//pr("Creating thread %d\n",i);
+		pr("Creating thread %d\n",i);
 		pthread_create( &threads[i].pthread, NULL, work,&threads[i]);
-		
+		pr("Created thread %d\n",i);
 	}
 
 	for (i = 0; i < NUMBER_OF_THREADS; i += 1)
 		pthread_join( threads[i].pthread, NULL);
-		printf("Thread %d returned\n",i);
 
 	
 
@@ -671,7 +604,6 @@ int main(int argc, char* argv[])
 	g = new_graph(in, n, m);
 
 	pthread_mutex_init(&(g->graph_lock),NULL);
-	pthread_mutex_init(&(g->excess_lock),NULL);
 
 	fclose(in);
 
