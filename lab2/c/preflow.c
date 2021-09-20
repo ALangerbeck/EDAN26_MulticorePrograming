@@ -166,8 +166,12 @@ static int id(graph_t* g, node_t* v)
 	 * divide by the size of the array element.
 	 *
 	 */
+	pthread_mutex_lock(&g->graph_lock);
 
-	return v - g->v;
+	int returnId = v - g->v;
+
+	pthread_mutex_unlock(&g->graph_lock);
+	return returnId;
 }
 #endif
 
@@ -486,7 +490,8 @@ void* work(void* argStruct)
 	edge_t*		e;
 	list_t*		p;
 	int		b;
-
+	int index = args->index;
+	pr("Created thread %d\n",index);
 
 	while ((u = leave_excess(g)) != NULL) {
 
@@ -494,7 +499,10 @@ void* work(void* argStruct)
 		/* u is any node with excess preflow. */
 
 		pr("selected u = %d with ", id(g, u));
+
+		pthread_mutex_lock(&u->a);
 		pr("h = %d and e = %d\n", u->h, u->e);
+		pthread_mutex_unlock(&u->a);
 
 		/* if we can push we must push and only if we could
 		 * not push anything, we are allowed to relabel.
@@ -552,7 +560,10 @@ void* work(void* argStruct)
 			relabel(g, u);
 		}
 
+		
+
 	}
+	pr("Thread %d terminared\n",index);
 
 }
 
@@ -600,13 +611,14 @@ static int preflow(graph_t* g)
 
 	pr("Begining Thread Creation\n");
 	for (i = 0; i < NUMBER_OF_THREADS; i += 1){
-		pr("Creating thread %d\n",i);
+		//pr("Creating thread %d\n",i);
 		pthread_create( &threads[i].pthread, NULL, work,&threads[i]);
-		pr("Created thread %d\n",i);
+		
 	}
 
 	for (i = 0; i < NUMBER_OF_THREADS; i += 1)
 		pthread_join( threads[i].pthread, NULL);
+		printf("Thread %d returned\n",i);
 
 	
 
