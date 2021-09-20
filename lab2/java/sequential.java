@@ -5,10 +5,9 @@ import java.util.LinkedList;
 
 import java.io.*;
 
-
-
 class Graph {
 
+	boolean debug =false;
 	int	s;
 	int	t;
 	int	n;
@@ -44,25 +43,29 @@ class Graph {
 	void relabel(Node u)
 	{
 		u.h += 1;
+
+		pr("relabel " + u.i + " now h = " +u.h+  "\n");
+
+		enter_excess(u);
 	}
 
-	void push(Node u, Node v, Edge e)
+	void push(Node u, Node v, Edge a)
 	{
+		
 		int		d;	/* remaining capacity of the edge. */
 
-		System.out.println("Enter push");
-		//pr("push from %d to %d: ", id(g, u), id(g, v));
-		//pr("f = %d, c = %d, so ", e->f, e->c);
+		pr("Pushing from " + (u.i) + " to " + (v.i)+" : ");
+		pr("f ="+ a.f +", c = " + a.c + ", so ");
 		
-		if (u == e.u) {
-			d = Math.min(u.e, e.c - e.f);
-			e.f += d;
+		if (u == a.u) {
+			d = Math.min(u.e, (a.c - a.f));
+			a.f += d;
 		} else {
-			d = Math.min(u.e, e.c + e.f);
-			e.f -= d;
+			d = Math.min(u.e, a.c + a.f);
+			a.f -= d;
 		}
 
-		//pr("pushing %d\n", d);
+		pr("pushing " +d+ "\n");
 
 		u.e -= d;
 		v.e += d;
@@ -70,8 +73,8 @@ class Graph {
 		/* the following are always true. */
 
 		assert d >= 0;
-		assert u.e >= 0;
-		assert Math.abs(e.f) <= e.c;
+		assert u.e >= 0 ;
+		assert Math.abs(a.f) <= a.c ;
 
 		if (u.e > 0) {
 
@@ -89,10 +92,12 @@ class Graph {
 
 			enter_excess(v);
 		}
+
 	}
 
 	int preflow(int s, int t)
-	{
+	{	
+		pr("Enter Preflow\n");
 		ListIterator<Edge>	iter;
 		int				b;
 		Edge			a;
@@ -120,16 +125,38 @@ class Graph {
 
 			iter = u.adj.listIterator();
 			while (iter.hasNext()) {
-				a = iter.next();
+					a = iter.next();
+
+					if (u == a.u) {
+						v = a.v;
+						b = 1;
+					} else {
+						v = a.u;
+						b = -1;
+					}
+					if (u.h > v.h && b * a.f < a.c){
+						break;
+					}else{
+						v = null;
+
+					}
+
 			}
 
 			if (v != null)
 				push(u, v, a);
 			else
 				relabel(u);
+			
 		}
 
 		return node[t].e;
+	}
+
+	void pr(String text){
+	if(debug){
+		System.out.print(text);
+		}
 	}
 }
 
@@ -162,10 +189,12 @@ class Edge {
 	}
 }
 
+
+
 class Preflow {
 	public static void main(String args[])
-	{
-		//System.out.println("What tha fack");
+	{	
+		boolean debug = false;
 		double	begin = System.currentTimeMillis();
 		Scanner s = new Scanner(System.in);
 		int	n;
@@ -202,4 +231,6 @@ class Preflow {
 		System.out.println("t = " + (end - begin) / 1000.0 + " s");
 		System.out.println("f = " + f);
 	}
+
+	
 }
