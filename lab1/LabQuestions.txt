@@ -1,3 +1,28 @@
+Quicest run, ALL files: 19.85system
+
+tiny/0.in : 0.825
+
+/railwayplanning/sample/1.in : 0.933
+
+/data/railwayplanning/secret/0mini.in : 0.875
+
+/data/railwayplanning/secret/1small.in : 0.868
+
+/data/railwayplanning/secret/2med.in : 0.921
+
+/data/railwayplanning/secret/3large.in : 6.436
+
+/data/railwayplanning/secret/4huge.in : 9.634
+
+/data/big/000.in : 6.714
+
+
+
+
+
+
+
+
 1. If you use a controller, how can it know that no node is active? If you
 don’t use a controller for that, how do the actors agree on terminating the
 algorithm?
