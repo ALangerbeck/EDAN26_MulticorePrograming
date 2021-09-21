@@ -35,7 +35,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#define PRINT		0	/* enable/disable prints. */
+#define PRINT		1	/* enable/disable prints. */
 
 //GLOBALS
 #define NUMBER_OF_THREADS  (12)
@@ -402,7 +402,7 @@ static node_t* leave_excess(graph_t* g)
 	return v;
 }
 
-static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
+static void push(graph_t* g, node_t* u, node_t* v, edge_t* e, int Threadid)
 {
 	if (u < v) {
             			pthread_mutex_lock(&u->a);
@@ -417,7 +417,7 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 
 	int		d;	/* remaining capacity of the edge. */
 
-	pr("push from %d to %d: ", id(g, u), id(g, v));
+	pr("Thread: %d pushing from %d to %d: ", Threadid ,id(g, u), id(g, v));
 	pr("f = %d, c = %d, so ", e->f, e->c);
 	
 	if (u == e->u) {
@@ -554,7 +554,7 @@ void* work(void* argStruct)
 		}
 
 		if (v != NULL){
-			push(g, u, v, e);
+			push(g, u, v, e, index);
 		}
 		else{
 			relabel(g, u);
@@ -592,7 +592,7 @@ static int preflow(graph_t* g)
 		p = p->next;
 
 		s->e += e->c;
-		push(g, s, other(s, e), e);
+		push(g, s, other(s, e), e,0);
 	}
 	
 	/* then loop until only s and/or t have excess preflow. */

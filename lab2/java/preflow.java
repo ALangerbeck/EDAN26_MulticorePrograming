@@ -6,13 +6,15 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.io.*;
 
 class Graph {
-
-	boolean debug =false;
+	
+	ReentrantLock listLock;
+	boolean debug =true;
 	int	s;
 	int	t;
 	int	n;
 	int	m;
-	int number_Of_Threads = 2;
+	int number_Of_Threads = 5;
+
 
 	Node	excess;		// list of nodes with excess preflow
 	Node	node[];
@@ -24,14 +26,17 @@ class Graph {
 		this.n		= node.length;
 		this.edge	= edge;
 		this.m		= edge.length;
+		listLock   = new ReentrantLock();
 	}
 
 	void enter_excess(Node u)
-	{
+	{	
+		listLock.lock();
 		if (u != node[s] && u != node[t]) {
 			u.next = excess;
 			excess = u;
 		}
+		listLock.unlock();
 	}
 
 	Node other(Edge a, Node u)
@@ -44,16 +49,26 @@ class Graph {
 
 	void relabel(Node u)
 	{
+		u.lock.lock();
 		u.h += 1;
 
 		pr("relabel " + u.i + " now h = " +u.h+  "\n");
-
+		u.lock.unlock();
 		enter_excess(u);
+
 	}
 
-	void work(){
-		
+	void Work(){
 
+		Node u;
+		Node v;
+		Edge a;
+		int b;
+		ListIterator<Edge>	iter;
+
+		Thread curr = Thread.currentThread();
+		pr("Created thread "+curr.getId() +"\n");
+		
 		while (excess != null) {
 			u = excess;
 			v = null;
@@ -63,6 +78,8 @@ class Graph {
 			iter = u.adj.listIterator();
 			while (iter.hasNext()) {
 					a = iter.next();
+
+
 					
 					if (u == a.u) {
 						v = a.v;
@@ -71,10 +88,27 @@ class Graph {
 						v = a.u;
 						b = -1;
 					}
+					if (u.i < v.i)   {
+					u.lock.lock();
+					v.lock.lock();
+					}
+					else {
+						v.lock.lock();
+						u.lock.lock();
+					}
+
+
+
+
+
 					if (u.h > v.h && b * a.f < a.c){
+						u.lock.unlock();
+						v.lock.unlock();
 						break;
 					}else{
+						v.lock.unlock();
 						v = null;
+						u.lock.unlock();
 
 					}
 
@@ -86,14 +120,25 @@ class Graph {
 				relabel(u);
 			
 		}
+		
+		pr("Terminating Thread "+curr.getId()+"\n");
 	} 
 
 	void push(Node u, Node v, Edge a)
 	{
 		
+		if (u.i < v.i)   {
+					u.lock.lock();
+					v.lock.lock();
+					}
+					else {
+						v.lock.lock();
+						u.lock.lock();
+					}
 		int		d;	/* remaining capacity of the edge. */
 
-		pr("Pushing from " + (u.i) + " to " + (v.i)+" : ");
+		Thread curr = Thread.currentThread();
+		pr( "Thread "+curr.getId()+" pushing from " + (u.i) + " to " + (v.i)+" : ");
 		pr("f ="+ a.f +", c = " + a.c + ", so ");
 		
 		if (u == a.u) {
@@ -132,6 +177,8 @@ class Graph {
 			enter_excess(v);
 		}
 
+		u.lock.unlock();
+		v.lock.unlock();
 	}
 
 	int preflow(int s, int t)
@@ -156,22 +203,34 @@ class Graph {
 			push(node[s], other(a, node[s]), a);
 		}
 
-	Thread threads[] = new Thread[number_Of_Threads];
-	for (int j = 0; j < number_Of_Threads; j++) {
-    threads[j] = new Thread(() -> work());
-    threads[j].start();
-	}
-	for (int j = 0; j < number_Of_Threads; j++) {
-    threads[j].join(); //todo add catch exception
-}
-		
+		Thread threads[] = new Thread[number_Of_Threads];
+		//threads = new Work[number_Of_Threads];
+	
+		for (int j = 0; j < number_Of_Threads; j++) {
+    		threads[j] = new Thread(() -> Work());
+    		//threads[j] = new Work(j);
+    		System.out.println("created thread:" + threads[j].getId()+"\n");
 
-		return node[t].e;
+		}
+
+		for (int j = 0; j < number_Of_Threads; j++) {
+    		threads[j].start();
+
+		}
+
+		try{
+			for (int j = 0; j < number_Of_Threads; j++) {
+	    		threads[j].join(); //todo add catch exception
+			}
+		}catch (InterruptedException e) { /* ignore */ }
+			
+
+			return node[t].e;
 	}
 
 	void pr(String text){
-	if(debug){
-		System.out.print(text);
+		if(debug){
+			System.out.print(text);
 		}
 	}
 }
@@ -206,6 +265,7 @@ class Edge {
 
 	}
 }
+
 
 
 
