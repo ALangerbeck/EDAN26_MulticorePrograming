@@ -74,6 +74,13 @@ typedef struct edge_t	edge_t;
 typedef struct list_t	list_t;
 typedef struct thread_Arg thread_Arg;
 typedef struct arg_t arg_t;
+typedef struct xedge_t	xedge_t;
+
+struct xedge_t {
+	int		u;	/* one of the two nodes.	*/
+	int		v;	/* the other. 			*/
+	int		c;	/* capacity.			*/
+};
 
 struct list_t {
 	edge_t*		edge;
@@ -140,6 +147,11 @@ struct arg_t{
  * as any basic type such as int.
  * 
  */
+#ifdef MAIN
+static graph_t* new_graph(FILE* in, int n, int m);
+#else
+static graph_t* new_graph(int n, int m, int s, int t, xedge_t* e);
+#endif
 
 static char* progname;
 
@@ -322,45 +334,7 @@ static void connect(node_t* u, node_t* v, int c, edge_t* e)
 	add_edge(v, e);
 }
 
-static graph_t* new_graph(FILE* in, int n, int m)
-{
-	graph_t*	g;
-	node_t*		u;
-	node_t*		v;
-	int		i;
-	int		a;
-	int		b;
-	int		c;
-	
-	g = xmalloc(sizeof(graph_t));
 
-	g->n = n;
-	g->m = m;
-	
-	g->v = xcalloc(n, sizeof(node_t));
-	g->e = xcalloc(m, sizeof(edge_t));
-
-	g->s = &g->v[0];
-	g->t = &g->v[n-1];
-	g->excess = NULL;
-
-	for (i = 0; i < m; i += 1) {
-		a = next_int();
-		b = next_int();
-		c = next_int();
-		u = &g->v[a];
-		v = &g->v[b];
-		connect(u, v, c, g->e+i);
-	}
-
-	
-	for (i = 0 ; i < n ; i +=1 ) { 
-    		pthread_mutex_init(&g->v[i].a, NULL);
-
-        }
-
-	return g;
-}
 
 static void enter_excess(graph_t* g, node_t* v)
 {
@@ -567,7 +541,7 @@ void* work(void* argStruct)
 
 }
 
-static int preflow(graph_t* g)
+static int xpreflow(graph_t* g)
 {
 	node_t*		s;
 	node_t*		u;
@@ -576,6 +550,9 @@ static int preflow(graph_t* g)
 	list_t*		p;
 	int		b;
 	int             i;
+
+	pthread_mutex_init(&(g->graph_lock),NULL);
+	pthread_mutex_init(&(g->excess_lock),NULL);
 
 	s = g->s;
 	s->h = g->n;
@@ -618,14 +595,12 @@ static int preflow(graph_t* g)
 
 	for (i = 0; i < NUMBER_OF_THREADS; i += 1)
 		pthread_join( threads[i].pthread, NULL);
-		printf("Thread %d returned\n",i);
+		pr("Thread %d returned\n",i);
 
 	
 
 	return g->t->e;
 }
-
-
 
 static void free_graph(graph_t* g)
 {
@@ -644,6 +619,71 @@ static void free_graph(graph_t* g)
 	free(g->v);
 	free(g->e);
 	free(g);
+}
+
+
+int preflow(int n, int m, int s, int t, xedge_t* e)
+{
+	graph_t*	g;
+	int		f;
+	double		begin;
+	double		end;
+
+#if TIME
+	init_timebase();
+	begin = timebase_sec();
+#endif
+	g = new_graph(n, m, s, t, e);
+	f = xpreflow(g);
+	free_graph(g);
+#if TIME
+	end = timebase_sec();
+	printf("t = %10.3lf s\n", end-begin);
+#endif
+	return f;
+}
+
+
+#ifdef MAIN
+
+static graph_t* new_graph(FILE* in, int n, int m)
+{
+	graph_t*	g;
+	node_t*		u;
+	node_t*		v;
+	int		i;
+	int		a;
+	int		b;
+	int		c;
+	
+	g = xmalloc(sizeof(graph_t));
+
+	g->n = n;
+	g->m = m;
+	
+	g->v = xcalloc(n, sizeof(node_t));
+	g->e = xcalloc(m, sizeof(edge_t));
+
+	g->s = &g->v[0];
+	g->t = &g->v[n-1];
+	g->excess = NULL;
+
+	for (i = 0; i < m; i += 1) {
+		a = next_int();
+		b = next_int();
+		c = next_int();
+		u = &g->v[a];
+		v = &g->v[b];
+		connect(u, v, c, g->e+i);
+	}
+
+	
+	for (i = 0 ; i < n ; i +=1 ) { 
+    		pthread_mutex_init(&g->v[i].a, NULL);
+
+        }
+
+	return g;
 }
 
 int main(int argc, char* argv[])
@@ -670,8 +710,6 @@ int main(int argc, char* argv[])
 
 	g = new_graph(in, n, m);
 
-	pthread_mutex_init(&(g->graph_lock),NULL);
-	pthread_mutex_init(&(g->excess_lock),NULL);
 
 	fclose(in);
 
@@ -684,3 +722,41 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
+
+#else
+
+static graph_t* new_graph(int n, int m, int s, int t, xedge_t* e)
+{
+	graph_t*	g;
+	node_t*		u;
+	node_t*		v;
+	int		i;
+	int		a;
+	int		b;
+	int		c;
+	
+	g = xmalloc(sizeof(graph_t));
+
+	g->n = n;
+	g->m = m;
+	
+	g->v = xcalloc(n, sizeof(node_t));
+	g->e = xcalloc(m, sizeof(edge_t));
+
+	g->s = &g->v[0];
+	g->t = &g->v[n-1];
+	g->excess = NULL;
+
+	for (i = 0; i < m; i += 1) {
+		a = e[i].u;
+		b = e[i].v;
+		c = e[i].c;
+		u = &g->v[a];
+		v = &g->v[b];
+		connect(u, v, c, g->e+i);
+	}
+
+	return g;
+}
+
+#endif

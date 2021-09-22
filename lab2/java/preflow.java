@@ -8,12 +8,12 @@ import java.io.*;
 class Graph {
 	
 	ReentrantLock listLock;
-	boolean debug =true;
+	boolean debug =false;
 	int	s;
 	int	t;
 	int	n;
 	int	m;
-	int number_Of_Threads = 5;
+	int number_Of_Threads = 2;
 
 
 	Node	excess;		// list of nodes with excess preflow
@@ -37,6 +37,24 @@ class Graph {
 			excess = u;
 		}
 		listLock.unlock();
+	}
+
+	Node leave_excess(){
+		Node tempNode;
+		listLock.lock();
+		
+
+		tempNode =	excess;
+
+		if (tempNode != null){
+			excess = tempNode.next;
+		}
+		
+		
+		listLock.unlock();
+
+		return tempNode;
+
 	}
 
 	Node other(Edge a, Node u)
@@ -66,14 +84,12 @@ class Graph {
 		int b;
 		ListIterator<Edge>	iter;
 
-		Thread curr = Thread.currentThread();
-		pr("Created thread "+curr.getId() +"\n");
+		//Thread curr = Thread.currentThread();
+		//pr("Created thread "+curr.getId() +"\n");
 		
-		while (excess != null) {
-			u = excess;
+		while ( (u = leave_excess()) != null) {
 			v = null;
 			a = null;
-			excess = u.next;
 
 			iter = u.adj.listIterator();
 			while (iter.hasNext()) {
@@ -121,7 +137,7 @@ class Graph {
 			
 		}
 		
-		pr("Terminating Thread "+curr.getId()+"\n");
+		//pr("Terminating Thread "+curr.getId()+"\n");
 	} 
 
 	void push(Node u, Node v, Edge a)
@@ -209,7 +225,7 @@ class Graph {
 		for (int j = 0; j < number_Of_Threads; j++) {
     		threads[j] = new Thread(() -> Work());
     		//threads[j] = new Work(j);
-    		System.out.println("created thread:" + threads[j].getId()+"\n");
+    		//System.out.println("created thread:" + threads[j].getId()+"\n");
 
 		}
 
@@ -220,7 +236,7 @@ class Graph {
 
 		try{
 			for (int j = 0; j < number_Of_Threads; j++) {
-	    		threads[j].join(); //todo add catch exception
+	    		threads[j].join(); 
 			}
 		}catch (InterruptedException e) { /* ignore */ }
 			
