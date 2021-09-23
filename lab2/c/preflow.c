@@ -115,7 +115,8 @@ struct thread_Arg{
 struct arg_t{ 
 	pthread_t pthread; 
 	int index; 
-	graph_t* g; 
+	graph_t* g;
+	int nodeProcessed; 
 };
 
 /* a remark about C arrays. the phrase above 'array of n nodes' is using
@@ -492,6 +493,7 @@ void* work(void* argStruct)
 	int		b;
 	int index = args->index;
 	pr("Created thread %d\n",index);
+	args -> nodeProcessed = 0;
 
 	while ((u = leave_excess(g)) != NULL) {
 
@@ -560,10 +562,10 @@ void* work(void* argStruct)
 			relabel(g, u);
 		}
 
-		
+		args -> nodeProcessed += 1;
 
 	}
-	pr("Thread %d terminared\n",index);
+	fprintf(stdout,"Thread %d terminared with %d nodes processed\n",index,args->nodeProcessed);
 
 }
 
@@ -618,7 +620,7 @@ static int preflow(graph_t* g)
 
 	for (i = 0; i < NUMBER_OF_THREADS; i += 1)
 		pthread_join( threads[i].pthread, NULL);
-		printf("Thread %d returned\n",i);
+		pr("Thread %d returned\n",i);
 
 	
 
