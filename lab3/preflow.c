@@ -40,6 +40,10 @@
 //GLOBALS
 #define NUMBER_OF_THREADS  (1)
 
+#define N       10000000ULL
+
+
+
 
 /* the funny do-while next clearly performs one iteration of the loop.
  * if you are really curious about why there is a loop, please check
@@ -74,6 +78,8 @@ typedef struct edge_t	edge_t;
 typedef struct list_t	list_t;
 typedef struct thread_Arg thread_Arg;
 typedef struct arg_t arg_t;
+typedef struct nodelist_t nodelist_t;
+typedef struct instruct instruct;
 
 struct list_t {
 	edge_t*		edge;
@@ -114,11 +120,23 @@ struct thread_Arg{
 	graph_t* argGraph;
 };
 
+struct instruct{
+	node_t* u;
+	node_t* v;
+	int relableOrPush;
+	edge_t* edge;
+	int amount;
+};
+
 struct arg_t{ 
 	pthread_t pthread; 
 	int index; 
 	graph_t* g;
-	node_t* nodeArray[];
+	int intNodesInArray;
+	node_t* nodeArray[N];
+	pthread_barrier_t* barrierStart;
+	instruct instructions[N];
+	int numberOfInstructions;
 
 };
 
@@ -472,17 +490,17 @@ void* work(void* argStruct)
 	list_t*		p;
 	int		b;
 	int index = args->index;
+	instruct* instruction;
+	int d;
+
 	pr("Created thread %d\n",index);
 
-	while ((u = leave_excess(g)) != NULL) {
+	pthread_barrier_wait(args->barrierStart);
 
-
-		/* u is any node with excess preflow. */
-
-		pr("selected u = %d with ", id(g, u));
-
-		
-		pr("h = %d and e = %d\n", u->h, u->e);
+	while ( args->intNodesInArray != 0) {
+		u = args->nodeArray[args->intNodesInArray];
+		args->nodeArray[args->intNodesInArray] = NULL;
+		args->intNodesInArray -= 1;
 		
 
 		/* if we can push we must push and only if we could
@@ -507,27 +525,29 @@ void* work(void* argStruct)
 				v = e->u;
 				b = -1;
 			}
-			
-		
-
-            		
+			       		
 			if (u->h > v->h && b * e->f < e->c){
-
-            			
+	
 				break;
-
 
 			}else{
 				
 				v = NULL;
             				
-            		}
-
-
+            }
 		}
 
 		if (v != NULL){
 			push(g, u, v, e, index);
+			instruction = &(args->instructions[args->numberOfInstructions]);
+			instruction->u = u;
+			instruction->v = v;
+			instruction->relableOrPush = 1;
+			instruction->edge = e;
+			instruction->amount = d; 
+
+			args->numberOfInstructions += 1;
+
 		}
 		else{
 			relabel(g, u);
@@ -545,12 +565,20 @@ static void distributeNodes(graph_t* g,arg_t* threadlist){
 	int interator = 0;
 
 	while((u = leave_excess(g)) != NULL){
-		if (threadlist[interator].nodelist != NULL)
-		{
-			threadlist[interator].nodelist /* code */
-		}
+		
+			threadlist[interator].nodeArray[threadlist[interator].intNodesInArray] = u;
 
+			if (interator == NUMBER_OF_THREADS)
+			{
+				interator = 0;
+			}else{
+				interator += 1;
+			}
 	}
+}
+static void phase2(){
+
+
 }
 
 static int preflow(graph_t* g)
@@ -583,6 +611,12 @@ static int preflow(graph_t* g)
 	
 	/* then loop until only s and/or t have excess preflow. */
 
+	//Barriers
+	pthread_barrier_t barrierInitial;
+
+	//Barrier init
+	pthread_barrier_init(&barrierInitial,NULL,NUMBER_OF_THREADS + 1);
+
 
 	arg_t threads[NUMBER_OF_THREADS];
 
@@ -590,7 +624,14 @@ static int preflow(graph_t* g)
 	{
 		threads[i].g = g;
 		threads[i].index = i;
+		threads[i].barrierStart = &barrierInitial;
+		threads[i].intNodesInArray = 0;
+		threads[i].numberOfInstructions = 0;
 	}
+
+	
+
+
 
 
 	pr("Begining Thread Creation\n");
@@ -599,6 +640,15 @@ static int preflow(graph_t* g)
 		pthread_create( &threads[i].pthread, NULL, work,&threads[i]);
 		
 	}
+
+	distributeNodes(g,threads);
+	pthread_barrier_wait(&barrierInitial);
+
+
+
+
+
+
 
 	/*for (i = 0; i < NUMBER_OF_THREADS; i += 1)
 		pthread_join( threads[i].pthread, NULL);

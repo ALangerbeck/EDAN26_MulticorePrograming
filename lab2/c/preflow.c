@@ -38,7 +38,7 @@
 #define PRINT		0	/* enable/disable prints. */
 
 //GLOBALS
-#define NUMBER_OF_THREADS  (5)
+#define NUMBER_OF_THREADS  (2)
 
 
 /* the funny do-while next clearly performs one iteration of the loop.
@@ -405,7 +405,7 @@ static node_t* leave_excess(graph_t* g)
 
 static void push(graph_t* g, node_t* u, node_t* v, edge_t* e, int Threadid)
 {
-	if (u < v) {
+	/*if (u < v) {
             			pthread_mutex_lock(&u->a);
             			pthread_mutex_lock(&v->a);
             		}
@@ -414,7 +414,7 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e, int Threadid)
             			pthread_mutex_lock(&v->a);
             			pthread_mutex_lock(&u->a);
             		}
-
+	*/
 
 	int		d;	/* remaining capacity of the edge. */
 
@@ -457,8 +457,8 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e, int Threadid)
 		enter_excess(g, v);
 	}
 
-	pthread_mutex_unlock(&v->a);
-        pthread_mutex_unlock(&u->a);
+	//pthread_mutex_unlock(&v->a);
+        //pthread_mutex_unlock(&u->a);
 
 }
 
@@ -540,9 +540,6 @@ void* work(void* argStruct)
             		}
 			if (u->h > v->h && b * e->f < e->c){
 
-            			pthread_mutex_unlock(&v->a);
-            			pthread_mutex_unlock(&u->a);
-
 				break;
 
 
@@ -556,16 +553,20 @@ void* work(void* argStruct)
 		}
 
 		if (v != NULL){
+			
 			push(g, u, v, e, index);
+			pthread_mutex_unlock(&v->a);
+            		pthread_mutex_unlock(&u->a);
 		}
 		else{
 			relabel(g, u);
 		}
 
+
 		args -> nodeProcessed += 1;
 
 	}
-	fprintf(stdout,"Thread %d terminared with %d nodes processed\n",index,args->nodeProcessed);
+	//fprintf(stdout,"Thread %d terminared with %d nodes processed\n",index,args->nodeProcessed);
 
 }
 
@@ -598,7 +599,6 @@ static int preflow(graph_t* g)
 	}
 	
 	/* then loop until only s and/or t have excess preflow. */
-
 
 	
 
