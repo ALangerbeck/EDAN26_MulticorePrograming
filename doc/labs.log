@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.3.18)  31 AUG 2021 17:23
+This is pdfTeX, Version 3.14159265-2.6-1.40.21 (TeX Live 2020) (preloaded format=pdflatex 2021.3.18)  24 SEP 2021 13:13
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -933,144 +933,149 @@ LaTeX Font Info:    Font shape `T1/fve/m/n' will be
 (Font)              scaled to size 12.1535pt on input line 12.
 LaTeX Font Info:    Font shape `T1/fve/b/n' will be
 (Font)              scaled to size 12.1535pt on input line 12.
+ (./labs.toc
+LaTeX Font Info:    Font shape `T1/fve/b/n' will be
+(Font)              scaled to size 8.43994pt on input line 1.
+)
+\tf@toc=\write4
+\openout4 = `labs.toc'.
+
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 14.
+(Font)              scaled to size 6.72005pt on input line 16.
 LaTeX Font Info:    Font shape `OT1/mdbch/m/n' will be
-(Font)              scaled to size 4.80003pt on input line 14.
+(Font)              scaled to size 4.80003pt on input line 16.
 LaTeX Font Info:    Font shape `OML/mdbch/m/it' will be
-(Font)              scaled to size 9.60007pt on input line 14.
+(Font)              scaled to size 9.60007pt on input line 16.
 LaTeX Font Info:    Font shape `OML/mdbch/m/it' will be
-(Font)              scaled to size 6.72005pt on input line 14.
+(Font)              scaled to size 6.72005pt on input line 16.
 LaTeX Font Info:    Font shape `OML/mdbch/m/it' will be
-(Font)              scaled to size 4.80003pt on input line 14.
+(Font)              scaled to size 4.80003pt on input line 16.
 LaTeX Font Info:    Font shape `OMS/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 14.
+(Font)              scaled to size 9.60007pt on input line 16.
 LaTeX Font Info:    Font shape `OMS/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 14.
+(Font)              scaled to size 6.72005pt on input line 16.
 LaTeX Font Info:    Font shape `OMS/mdbch/m/n' will be
-(Font)              scaled to size 4.80003pt on input line 14.
+(Font)              scaled to size 4.80003pt on input line 16.
 LaTeX Font Info:    Font shape `OMX/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 14.
+(Font)              scaled to size 9.60007pt on input line 16.
 LaTeX Font Info:    Font shape `OMX/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 14.
+(Font)              scaled to size 6.72005pt on input line 16.
 LaTeX Font Info:    Font shape `OMX/mdbch/m/n' will be
-(Font)              scaled to size 4.80003pt on input line 14.
+(Font)              scaled to size 4.80003pt on input line 16.
 LaTeX Font Info:    Font shape `OML/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 14.
+(Font)              scaled to size 9.60007pt on input line 16.
 LaTeX Font Info:    Font shape `OML/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 14.
+(Font)              scaled to size 6.72005pt on input line 16.
 LaTeX Font Info:    Font shape `OML/mdbch/m/n' will be
-(Font)              scaled to size 4.80003pt on input line 14.
+(Font)              scaled to size 4.80003pt on input line 16.
 LaTeX Font Info:    Font shape `MDA/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 14.
+(Font)              scaled to size 9.60007pt on input line 16.
 LaTeX Font Info:    Font shape `MDA/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 14.
+(Font)              scaled to size 6.72005pt on input line 16.
 LaTeX Font Info:    Font shape `MDA/mdbch/m/n' will be
-(Font)              scaled to size 4.80003pt on input line 14.
+(Font)              scaled to size 4.80003pt on input line 16.
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
-(Font)              scaled to size 9.60007pt on input line 14.
+(Font)              scaled to size 9.60007pt on input line 16.
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
-(Font)              scaled to size 6.72005pt on input line 14.
+(Font)              scaled to size 6.72005pt on input line 16.
 LaTeX Font Info:    Font shape `MDB/mdbch/m/n' will be
-(Font)              scaled to size 4.80003pt on input line 14.
-LaTeX Font Info:    Font shape `T1/fve/m/it' in size <10> not available
-(Font)              Font shape `T1/fve/m/sl' tried instead on input line 52.
-LaTeX Font Info:    Font shape `T1/fve/m/sl' will be
-(Font)              scaled to size 8.43994pt on input line 52.
+(Font)              scaled to size 4.80003pt on input line 16.
  [1
 
 {/opt/texlive/2020/texmf-var/fonts/map/pdftex/updmap/pdftex.map}]
-LaTeX Font Info:    Trying to load font information for TS1+fve on input line 6
+LaTeX Font Info:    Font shape `T1/fve/m/it' in size <10> not available
+(Font)              Font shape `T1/fve/m/sl' tried instead on input line 72.
+LaTeX Font Info:    Font shape `T1/fve/m/sl' will be
+(Font)              scaled to size 8.43994pt on input line 72.
+ [2]
+LaTeX Font Info:    Trying to load font information for TS1+fve on input line 8
 6.
 
 (/opt/texlive/2020/texmf-dist/tex/latex/bera/ts1fve.fd
 File: ts1fve.fd 2004/09/07 scalable font definitions for TS1/fve.
 )
 LaTeX Font Info:    Font shape `TS1/fve/m/n' will be
-(Font)              scaled to size 8.99994pt on input line 66.
+(Font)              scaled to size 8.99994pt on input line 86.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `fve' (encoding: TS1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
 LaTeX Font Info:    Font shape `T1/fvm/m/n' will be
-(Font)              scaled to size 8.43994pt on input line 74.
+(Font)              scaled to size 8.43994pt on input line 94.
 Package microtype Info: Loading generic protrusion settings for font family
 (microtype)             `fvm' (encoding: T1).
 (microtype)             For optimal results, create family-specific settings.
 (microtype)             See the microtype manual for details.
- [2]
+ [3]
 LaTeX Font Info:    Font shape `T1/fve/b/n' will be
-(Font)              scaled to size 10.12793pt on input line 104.
- [3] [4]
-LaTeX Font Info:    Font shape `T1/fve/b/n' will be
-(Font)              scaled to size 8.43994pt on input line 133.
- [5]
-[6] [7] [8] [9] [10] [11] [12]
-Overfull \hbox (59.95338pt too wide) in paragraph at lines 412--412
+(Font)              scaled to size 10.12793pt on input line 124.
+ [4] [5] [6]
+[7] [8] [9] [10] [11] [12] [13] [14]
+Overfull \hbox (59.95338pt too wide) in paragraph at lines 461--461
 []\T1/fvm/m/n/10 gcc -ftree-parallelize-loops=80 -fexpensive-optimizations -mcp
 u=power8 -O3 mm.c[] 
  []
 
-[13] [14]
-Overfull \hbox (17.7434pt too wide) in paragraph at lines 455--457
+[15] [16]
+Overfull \hbox (17.7434pt too wide) in paragraph at lines 504--506
 \T1/fve/m/n/10 (-20) If all is prop-erly in-stalled (such as Java), this will c
 om-pile and run a file \T1/fvm/m/n/10 preflow.scala
  []
 
-[15]
+[17]
 LaTeX Font Info:    Font shape `TS1/fve/m/it' in size <10> not available
-(Font)              Font shape `TS1/fve/m/sl' tried instead on input line 497.
+(Font)              Font shape `TS1/fve/m/sl' tried instead on input line 546.
 LaTeX Font Info:    Font shape `TS1/fve/m/sl' will be
-(Font)              scaled to size 8.99994pt on input line 497.
+(Font)              scaled to size 8.99994pt on input line 546.
 
-Overfull \hbox (247.24521pt too wide) in paragraph at lines 497--498
+Overfull \hbox (247.24521pt too wide) in paragraph at lines 546--547
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (247.24521pt too wide) in paragraph at lines 498--500
+Overfull \hbox (247.24521pt too wide) in paragraph at lines 547--549
 [][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
-[16]
-Overfull \hbox (4.1727pt too wide) in paragraph at lines 550--551
+[18]
+Overfull \hbox (4.1727pt too wide) in paragraph at lines 599--600
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
-[17]
-Overfull \hbox (14.30075pt too wide) in paragraph at lines 600--601
+[19]
+Overfull \hbox (14.30075pt too wide) in paragraph at lines 649--650
 [][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
-[18] [19] [20] [21]
-Overfull \hbox (13.98073pt too wide) in paragraph at lines 800--801
+[20] [21] [22] [23]
+Overfull \hbox (13.98073pt too wide) in paragraph at lines 849--850
 [][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (59.55681pt too wide) in paragraph at lines 801--802
+Overfull \hbox (59.55681pt too wide) in paragraph at lines 850--851
 [][][][][][][][][][][][][][][][][][][][][][] 
  []
 
 
-Overfull \hbox (34.23676pt too wide) in paragraph at lines 807--808
+Overfull \hbox (34.23676pt too wide) in paragraph at lines 856--857
 [][][][][][][][][][][][][][][][][][][][][][][][][] 
  []
 
-[22] [23]
+[24] [25]
 Package textcomp Info: Symbol \textminus not provided by
 (textcomp)             font family fve in TS1 encoding.
-(textcomp)             Default family used instead on input line 910.
+(textcomp)             Default family used instead on input line 959.
  (/opt/texlive/2020/texmf-dist/tex/latex/microtype/mt-cmr.cfg
 File: mt-cmr.cfg 2013/05/19 v2.2 microtype config. file: Computer Modern Roman 
 (RS)
 )
-[24] [25] [26] (./labs.aux) ) 
+[26] [27] [28] (./labs.aux) ) 
 Here is how much of TeX's memory you used:
- 18144 strings out of 479014
- 334397 string characters out of 5862103
+ 18149 strings out of 479014
+ 334433 string characters out of 5862103
  816973 words of memory out of 5000000
- 35059 multiletter control sequences out of 15000+600000
+ 35061 multiletter control sequences out of 15000+600000
  470713 words of font info for 227 fonts, out of 8000000 for 9000
  1141 hyphenation exceptions out of 8191
  127i,6n,130p,403b,1784s stack positions out of 5000i,500n,10000p,200000b,80000s
@@ -1086,10 +1091,10 @@ live/2020/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chr7t.pfb></opt/tex
 live/2020/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chr7y.pfb></opt/tex
 live/2020/texmf-dist/fonts/type1/public/mathdesign/mdbch/md-chri7m.pfb></opt/te
 xlive/2020/texmf-dist/fonts/type1/public/cm-super/sfti1000.pfb>
-Output written on labs.pdf (26 pages, 98065 bytes).
+Output written on labs.pdf (28 pages, 101956 bytes).
 PDF statistics:
- 134 PDF objects out of 1000 (max. 8388607)
- 95 compressed objects within 1 object stream
+ 140 PDF objects out of 1000 (max. 8388607)
+ 99 compressed objects within 1 object stream
  0 named destinations out of 1000 (max. 500000)
  43533 words of extra memory for PDF output out of 51595 (max. 10000000)
 

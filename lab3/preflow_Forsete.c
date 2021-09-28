@@ -35,10 +35,10 @@
 #include <string.h>
 #include <pthread.h>
 
-#define PRINT		1	/* enable/disable prints. */
+#define PRINT		0	/* enable/disable prints. */
 
 //GLOBALS
-#define NUMBER_OF_THREADS  (9)
+#define NUMBER_OF_THREADS  (30)
 
 #define N       1000ULL
 
@@ -80,6 +80,15 @@ typedef struct thread_Arg thread_Arg;
 typedef struct arg_t arg_t;
 typedef struct nodelist_t nodelist_t;
 typedef struct instruct instruct;
+
+typedef struct xedge_t	xedge_t;
+
+
+struct xedge_t {
+	int		u;	/* one of the two nodes.	*/
+	int		v;	/* the other. 			*/
+	int		c;	/* capacity.			*/
+};
 
 struct list_t {
 	edge_t*		edge;
@@ -138,7 +147,6 @@ struct arg_t{
 	pthread_barrier_t* barrierStart;
 	instruct instructions[N];
 	int numberOfInstructions;
-	int nodesProcessed;
 
 };
 
@@ -164,6 +172,12 @@ struct arg_t{
  * as any basic type such as int.
  * 
  */
+
+#ifdef MAIN
+static graph_t* new_graph(FILE* in, int n, int m);
+#else
+static graph_t* new_graph(int n, int m, int s, int t, xedge_t* e);
+#endif
 
 static char* progname;
 
@@ -344,43 +358,6 @@ static void connect(node_t* u, node_t* v, int c, edge_t* e)
 	add_edge(v, e);
 }
 
-static graph_t* new_graph(FILE* in, int n, int m)
-{
-	graph_t*	g;
-	node_t*		u;
-	node_t*		v;
-	int		i;
-	int		a;
-	int		b;
-	int		c;
-	
-	
-	g = xmalloc(sizeof(graph_t));
-
-	g->n = n;
-	g->m = m;
-
-	g->isDone = 0;
-	
-	g->v = xcalloc(n, sizeof(node_t));
-	g->e = xcalloc(m, sizeof(edge_t));
-
-	g->s = &g->v[0];
-	g->t = &g->v[n-1];
-	g->excess = NULL;
-
-	for (i = 0; i < m; i += 1) {
-		a = next_int();
-		b = next_int();
-		c = next_int();
-		u = &g->v[a];
-		v = &g->v[b];
-		connect(u, v, c, g->e+i);
-	}
-
-	return g;
-}
-
 static void enter_excess(graph_t* g, node_t* v)
 {
 	/* put v at the front of the list of nodes
@@ -399,6 +376,8 @@ static void enter_excess(graph_t* g, node_t* v)
 	}
 	
 }
+
+
 
 static node_t* leave_excess(graph_t* g)
 {
@@ -489,7 +468,6 @@ void* work(void* argStruct)
 	int index = args->index;
 	instruct* instruction;
 	int d;
-	args->nodesProcessed = 0;
 
 	pr("Created thread %d\n",index);
 
@@ -579,7 +557,7 @@ void* work(void* argStruct)
 
 			}
 
-			args->nodesProcessed +=1;
+			
 
 		}
 		pr("Thread %d is done with phase 1\n",index);
@@ -588,7 +566,11 @@ void* work(void* argStruct)
 		pthread_barrier_wait(args->barrierStart);
 		
 	}
-		
+
+
+
+	
+
 }
 static void distributeNodes(graph_t* g,arg_t* threadlist){
 
@@ -648,7 +630,7 @@ static void phase2(graph_t* g,arg_t* threadlist){
 	
 }
 
-static int preflow(graph_t* g)
+static int xpreflow(graph_t* g)
 {
 	node_t*		s;
 	node_t*		u;
@@ -742,10 +724,32 @@ static int preflow(graph_t* g)
 
 	for (i = 0; i < NUMBER_OF_THREADS; i += 1){
 		pthread_join( threads[i].pthread, NULL);
-		//pr("Thread %d returned\n",i);
-		pr("Thread %d returned with %d processed nodes\n",i,threads[i].nodesProcessed);
+		pr("Thread %d returned\n",i);
 	}
 	return g->t->e;
+}
+
+static void free_graph(graph_t* g);
+
+int preflow(int n, int m, int s, int t, xedge_t* e)
+{
+	graph_t*	g;
+	int		f;
+	double		begin;
+	double		end;
+
+#if TIME
+	init_timebase();
+	begin = timebase_sec();
+#endif
+	g = new_graph(n, m, s, t, e);
+	f = xpreflow(g);
+	free_graph(g);
+#if TIME
+	end = timebase_sec();
+	printf("t = %10.3lf s\n", end-begin);
+#endif
+	return f;
 }
 
 
@@ -768,6 +772,46 @@ static void free_graph(graph_t* g)
 	free(g->e);
 	free(g);
 }
+
+#ifdef MAIN
+
+static graph_t* new_graph(FILE* in, int n, int m)
+{
+	graph_t*	g;
+	node_t*		u;
+	node_t*		v;
+	int		i;
+	int		a;
+	int		b;
+	int		c;
+	
+	
+	g = xmalloc(sizeof(graph_t));
+
+	g->n = n;
+	g->m = m;
+
+	g->isDone = 0;
+	
+	g->v = xcalloc(n, sizeof(node_t));
+	g->e = xcalloc(m, sizeof(edge_t));
+
+	g->s = &g->v[0];
+	g->t = &g->v[n-1];
+	g->excess = NULL;
+
+	for (i = 0; i < m; i += 1) {
+		a = next_int();
+		b = next_int();
+		c = next_int();
+		u = &g->v[a];
+		v = &g->v[b];
+		connect(u, v, c, g->e+i);
+	}
+
+	return g;
+}
+
 
 int main(int argc, char* argv[])
 {
@@ -804,3 +848,40 @@ int main(int argc, char* argv[])
 
 	return 0;
 }
+
+#else
+
+static graph_t* new_graph(int n, int m, int s, int t, xedge_t* e)
+{
+	graph_t*	g;
+	node_t*		u;
+	node_t*		v;
+	int		i;
+	int		a;
+	int		b;
+	int		c;
+	
+	g = xmalloc(sizeof(graph_t));
+
+	g->n = n;
+	g->m = m;
+	
+	g->v = xcalloc(n, sizeof(node_t));
+	g->e = xcalloc(m, sizeof(edge_t));
+
+	g->s = &g->v[0];
+	g->t = &g->v[n-1];
+	g->excess = NULL;
+
+	for (i = 0; i < m; i += 1) {
+		a = e[i].u;
+		b = e[i].v;
+		c = e[i].c;
+		u = &g->v[a];
+		v = &g->v[b];
+		connect(u, v, c, g->e+i);
+	}
+
+	return g;
+}
+#endif

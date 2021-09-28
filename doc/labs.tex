@@ -9,6 +9,8 @@
 \begin{document}
 \maketitle
 
+\tableofcontents
+
 \section{Performance results}
 \begin{center}
 \begin{tabular}{|c|l|l|r|l|}
@@ -43,6 +45,24 @@ Lab & Language* & Synchronization & Time / s & Note \hspace{21mm} \ \\
 \end{center}
 \noindent * C is required in Lab~2, and recommended in labs 3, 4 and 6. See Section~\ref{lang.sec}. 
 
+\section{Competition rules}
+This is a tentative list of rules for the competition.
+\begin{enumerate}
+\item The deadline for the competition is Sunday October 31st, at 18:00:00.
+
+\item Only programs based on the preflow push algorithm are permitted.
+
+\item If you would violate any constraints in the algorithm, you must prove that it is correct to do so and
+not just happens to work on the test cases. An example of a violated constraint would be to allow the height 
+of a node to have any value (which would not be permitted since the algorithm will not work then).
+
+\item It is obviously permitted to be inspired by published articles.
+
+\item It must be written in ISO C plus Pthreads, meaning no GNU extensions and no machine code, except that it is permitted to use
+hardware transactional memory as in Lab 6 (despite not being ISO C).
+\item No data-races are permitted.
+
+\end{enumerate}
 \section{More theory about preflow-push}
 The preflow-push algorithm is almost always presented with a while loop that iterates until no node (except the sink) has a positive excess preflow. We used the same in EDAF05.
 
@@ -137,6 +157,8 @@ You will learn about:
 \item Guarantees about the order in which messages arrive
 \item How to know when an Akka program has completed (one example)
 \end{itemize}
+\subsubsection*{Relevant sections in the book}
+See lecture 2, since the book does not cover Scala/Akka but if you are new to terminals, Appendix A will be useful (you can find it in Tresorit as well).
 \subsubsection*{Requirements}
 \begin{enumerate}
 \item Each node must be one actor.
@@ -204,10 +226,15 @@ Recall that a task is  the job performed as a ''work-item''
 by a thread such as what is done with one node with excess preflow.
 \end{itemize}
 
+\subsubsection*{Relevant sections in the book}
+Chapter 18 and sections 6.5 and 6.9.1 if your C program crashes.
 \subsubsection*{Requirements}
 \begin{enumerate}
 \item Parallelize preflow-push both in Java and C with locks and possibly with
 condition variables (see hints about which language may be preferable to do first).
+
+\item The concurrency must scale with the number of nodes and threads so you cannot use for instance
+only one lock for the whole program. Use for example one lock per node.
 
 \item Check your C program both with
 the Google Thread Sanitizer (often called tsan) and Helgrind. 
@@ -274,6 +301,8 @@ You will learn about:
 \item How to use barriers.
 \end{itemize}
 
+\subsubsection*{Relevant sections in the book}
+The same as for Lab 2.
 \subsubsection*{Requirements}
 \begin{enumerate}
 \item Either (1) modify your C program from Lab~2, or (2) use any other language of your choice that
@@ -287,7 +316,9 @@ supports data-race detection, so that the threads run in two phases:
 \item What fraction of the execution time is wasted on synchronization?
 
 \item Collect and present statistics about load-balancing.
-\item Your program should now be faster than the sequential from Lab 0.
+\item Your program should now be faster than the sequential from Lab 0, which gets a score of $35$ at
+Forsete.
+
 \end{enumerate}
 
 \subsubsection*{Questions}
@@ -309,6 +340,8 @@ You will learn about
 \item When this overhead may save time from other parts of a program.
 \end{itemize}
 
+\subsubsection*{Relevant sections in the book}
+Chapter 5, sections 7.18, and 13.16.
 \subsubsection*{Requirements}
 \begin{enumerate}
 \item Make a copy of the sequential C program from Lab 0 and change the
@@ -319,8 +352,17 @@ type from \verb.int. to \verb.atomic_int. for each variable in the
 assembler code. See hint for this lab. 
 
 \item Modify your program from Lab~3 (or Lab~2 if the language used in Lab~3 has no support for atomic variables)
-so that it uses both barriers and atomic variables.
+so that it uses both barriers and atomic variables. It is not sufficient to just change all
+\verb.int.s to \verb.atomic_int.s. You need to somehow exploit the atomic variables. One option is
+to accumulate incoming pushes in a new, atomic, variable in phase 1, and then add that to the
+excess preflow in phase 2, but there are more alternatives.
 \item Your program should still be faster than the sequential from Lab 0.
+
+\item Test your program both with sequential consistency and relaxed memory order. Depending on how
+how complex context you use atomic variables in, it may be impossible to use only relaxed memory order but for
+example accumulating incoming pushes (incrementing a counter where only the sum at the end matters
+and not in which order the counter was incremented) it is safe for relaxed memory order. 
+In other contexts you may need to also use memory order release and acquire.
 \end{enumerate}
 
 \subsubsection*{Questions}
@@ -333,6 +375,7 @@ so that it uses both barriers and atomic variables.
 and (2) relaxed memory order? Why or why not do you think?
 \item Explain your source code.
 \item Did you find a way to improve the performance of your program over the first correct version?
+\item What is the purpose of each of memory order release and memory order acquire?
 
 \end{enumerate}
 
@@ -346,8 +389,11 @@ You will learn how Rust is used when
 \item moving objects when creating threads
 \end{itemize}
 
+\subsubsection*{Relevant sections in the book}
+See lecture 7 since Rust is not covered in the book.
 \subsubsection*{Requirements}
 \begin{enumerate}
+\item It is not permitted to use the keyword \verb.unsafe. which essentially makes the program as unsafe as C and C++. The whole point with Rust is that the compiler should give guarantees about the safety of the program but with \verb.unsafe. it cannot.
 \item Make a sequential version of preflow-push
 \item Make a parallel version of preflow-push
 \end{enumerate}
@@ -395,6 +441,9 @@ You will learn about:
 \item parallelizing compilers
 \end{itemize}
 
+\subsubsection*{Relevant sections in the book}
+Chapter 20, and you may want to check out chapter 16 on optimizing compilers if you are curious but it is
+not part of the course really, and lecture 8 about Clojure.
 \subsubsection*{Requirements}
 \begin{enumerate}
 \item Modify one of your C programs to use hardware transactional memory.
@@ -847,7 +896,7 @@ made the call, all threads are allowed to resume execution.
 \item To quickly find the machine instructions of some code, you can 
 add a global volatile variable and do something with it that is easy to search for in
 the assembler file.
-Then compile with \verb.-S. and look in the file with suffix \verb.s.. 
+On Power, you can compile with \verb.-S. and then look in the file with suffix \verb.s.. 
 \begin{ccode}
 volatile int hello;
 void relabel(graph_t* g, node_t* u)
