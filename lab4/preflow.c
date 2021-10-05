@@ -33,9 +33,18 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <pthread.h>
 #include <stdatomic.h>
 
 #define PRINT		0	/* enable/disable prints. */
+
+//GLOBALS
+#define NUMBER_OF_THREADS  (3)
+
+#define N       1000ULL
+
+
+
 
 /* the funny do-while next clearly performs one iteration of the loop.
  * if you are really curious about why there is a loop, please check
@@ -62,22 +71,30 @@
  *
  */
 
+
+
 typedef struct graph_t	graph_t;
 typedef struct node_t	node_t;
 typedef struct edge_t	edge_t;
 typedef struct list_t	list_t;
-volatile int hello;
+typedef struct thread_Arg thread_Arg;
+typedef struct arg_t arg_t;
+typedef struct nodelist_t nodelist_t;
+typedef struct instruct instruct;
 
 struct list_t {
 	edge_t*		edge;
 	list_t*		next;
 };
 
+/*struct nodelist_t {
+	node_t*		node;
+	nodelist_t*	next;
+};*/
+
 struct node_t {
-	atomic_int		h;	/* height.			*/
-	atomic_int	e;	/* excess flow.			*/
-	//int h;
-	//int e;
+	int		h;	/* height.			*/
+	atomic_int		e;	/* excess flow.			*/
 	list_t*		edge;	/* adjacency list.		*/
 	node_t*		next;	/* with excess preflow.		*/
 };
@@ -86,19 +103,44 @@ struct edge_t {
 	node_t*		u;	/* one of the two nodes.	*/
 	node_t*		v;	/* the other. 			*/
 	atomic_int		f;	/* flow > 0 if from u to v.	*/
-	atomic_int		c;	/* capacity.			*/
-	//int f;
-	//int c;
+	int		c;	/* capacity.			*/
 };
 
 struct graph_t {
 	int		n;	/* nodes.			*/
 	int		m;	/* edges.			*/
+	int isDone;
 	node_t*		v;	/* array of n nodes.		*/
 	edge_t*		e;	/* array of m edges.		*/
 	node_t*		s;	/* source.			*/
 	node_t*		t;	/* sink.			*/
 	node_t*		excess;	/* nodes with e > 0 except s,t.	*/
+};
+
+struct thread_Arg{
+	node_t*	argNode;
+	graph_t* argGraph;
+};
+
+struct instruct{
+	node_t* u;
+	node_t* v;
+	int relableOrPush;
+	edge_t* edge;
+	int amount;
+};
+
+struct arg_t{ 
+	pthread_t pthread; 
+	atomic_int index; 
+	graph_t* g;
+	atomic_int intNodesInArray;
+	node_t* nodeArray[N];
+	pthread_barrier_t* barrierStart;
+	instruct instructions[N];
+	int numberOfInstructions;
+	int nodesProcessed;
+
 };
 
 /* a remark about C arrays. the phrase above 'array of n nodes' is using
@@ -149,8 +191,10 @@ static int id(graph_t* g, node_t* v)
 	 * divide by the size of the array element.
 	 *
 	 */
+	
+	int returnId = v - g->v;
 
-	return v - g->v;
+	return returnId;
 }
 #endif
 
@@ -311,10 +355,13 @@ static graph_t* new_graph(FILE* in, int n, int m)
 	int		b;
 	int		c;
 	
+	
 	g = xmalloc(sizeof(graph_t));
 
 	g->n = n;
 	g->m = m;
+
+	g->isDone = 0;
 	
 	g->v = xcalloc(n, sizeof(node_t));
 	g->e = xcalloc(m, sizeof(edge_t));
@@ -346,10 +393,12 @@ static void enter_excess(graph_t* g, node_t* v)
 	 *
 	 */
 
+
 	if (v != g->t && v != g->s) {
 		v->next = g->excess;
 		g->excess = v;
 	}
+	
 }
 
 static node_t* leave_excess(graph_t* g)
@@ -365,24 +414,19 @@ static node_t* leave_excess(graph_t* g)
 
 	if (v != NULL)
 		g->excess = v->next;
-
+	
+	
 	return v;
 }
 
-static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
+static void push(graph_t* g, node_t* u, node_t* v, edge_t* e, int d)
 {
-	int		d;	/* remaining capacity of the edge. */
 
-	pr("push from %d to %d: ", id(g, u), id(g, v));
-	pr("f = %d, c = %d, so ", e->f, e->c);
+
+
+	//pr("Thread: %d pushing from %d to %d: ", Threadid ,id(g, u), id(g, v));
+	//pr("f = %d, c = %d, so ", e->f, e->c);
 	
-	if (u == e->u) {
-		d = MIN(u->e, e->c - e->f);
-		e->f += d;
-	} else {
-		d = MIN(u->e, e->c + e->f);
-		e->f -= d;
-	}
 
 	pr("pushing %d\n", d);
 
@@ -394,33 +438,33 @@ static void push(graph_t* g, node_t* u, node_t* v, edge_t* e)
 	assert(d >= 0);
 	assert(u->e >= 0);
 	assert(abs(e->f) <= e->c);
-
+	
+	/*
 	if (u->e > 0) {
 
-		/* still some remaining so let u push more. */
+		// still some remaining so let u push more. 
 
 		enter_excess(g, u);
 	}
-
+	
 	if (v->e == d) {
 
-		/* since v has d excess now it had zero before and
-		 * can now push.
-		 *
-		 */
+		// since v has d excess now it had zero before and
+		//can now push.
 
 		enter_excess(g, v);
 	}
+	*/
+
 }
 
 static void relabel(graph_t* g, node_t* u)
 {	
-	hello &= 0x1234;
+	
 	u->h += 1;
-	hello &= 0x5678;
 
 	pr("relabel %d now h = %d\n", id(g, u), u->h);
-
+	
 	enter_excess(g, u);
 }
 
@@ -431,7 +475,209 @@ static node_t* other(node_t* u, edge_t* e)
 	else
 		return e->u;
 }
+
+void* work(void* argStruct)
+{	
 	
+	struct arg_t *args = argStruct;
+
+	graph_t* g = args -> g;
+	node_t*		u;
+	node_t*		v;
+	edge_t*		e;
+	list_t*		p;
+	int		b;
+	int index = args->index;
+	instruct* instruction;
+	int d;
+	args->nodesProcessed = 0;
+
+	//pr("Created thread %d\n",index);
+
+	pr("Thread %d waiting for other threads to be created\n",args->index);
+	pthread_barrier_wait(args->barrierStart);
+	pr("Thread %d passed creation barrier, waiting for initial distribute\n",args->index);
+	
+
+	pthread_barrier_wait(args->barrierStart);
+	pr("Thread %d starting after initial distribute\n",args->index);
+	
+
+	while (g->isDone != 1)
+	{
+		/* code */
+		pr("entered calculations\n");
+	
+	
+		while ( args->intNodesInArray != 0) {
+			u = args->nodeArray[args->intNodesInArray-1];
+			args->nodeArray[args->intNodesInArray] = NULL;
+			args->intNodesInArray -= 1;
+			pr("processing node %d\n",id(g,u));
+			
+
+			/* if we can push we must push and only if we could
+			* not push anything, we are allowed to relabel.
+			*
+			* we can push to multiple nodes if we wish but
+			* here we just push once for simplicity.
+			*
+			*/
+
+			v = NULL;
+			p = u->edge;
+
+			while (p != NULL) {
+				e = p->edge;
+				p = p->next;
+
+				if (u == e->u) {
+					v = e->v;
+					b = 1;
+				} else {
+					v = e->u;
+					b = -1;
+				}
+							
+				if (u->h > v->h && b * e->f < e->c){
+		
+					break;
+
+				}else{
+					
+					v = NULL;
+								
+				}
+			}
+
+			if (v != NULL){
+				//push(g, u, v, e, index);
+
+				if (u == e->u) {
+					d = MIN(u->e, e->c - e->f);
+					e->f += d;
+				} else {
+					d = MIN(u->e, e->c + e->f);
+					e->f -= d;
+				}
+
+				instruction = &(args->instructions[args->numberOfInstructions]);
+				instruction->u = NULL;
+				instruction->v = NULL;
+				instruction->relableOrPush = 1;
+				instruction->edge = e;
+
+				args->numberOfInstructions += 1;
+				
+				push(g,u,v,e,d);
+
+				if (u->e > 0) {
+					// still some remaining so let u push more. 
+					//enter_excess(g, u);
+					instruction->u = u;
+				}
+	
+				if (v->e == d) {
+						// since v has d excess now it had zero before and
+						//can now push
+						//enter_excess(g, v);
+					instruction->v = v;
+				}
+
+				//pr("Thread %d created instruction: push %d from %d to %d\n",args->index,d,id(g,u),id(g,v));
+
+			}
+			else{
+				//relabel(g, u);
+				instruction = &(args->instructions[args->numberOfInstructions]);
+				instruction->u = u;
+				instruction->relableOrPush = 0;
+				args->numberOfInstructions += 1;
+
+				pr("Thread %d created instruction: Relable %d\n",args->index,id(g,u));
+
+			}
+
+			args->nodesProcessed +=1;
+
+		}
+		pr("Thread %d is done with phase 1\n",index);
+		pthread_barrier_wait(args->barrierStart);
+		pr("Thread %d is waiting for phase 2\n",index);
+		pthread_barrier_wait(args->barrierStart);
+		
+	}
+		
+}
+
+static void distributeNodes(graph_t* g,arg_t* threadlist){
+
+	
+
+	node_t*		u;
+	int interator = 0;
+
+	while((u = leave_excess(g)) != NULL){
+
+			pr("Main is distributing node %d to thread %d\n",id(g,u),threadlist[interator].index);
+			threadlist[interator].nodeArray[threadlist[interator].intNodesInArray] = u;
+			threadlist[interator].intNodesInArray +=1;
+
+			if (interator == NUMBER_OF_THREADS -1)
+			{
+				interator = 0;
+			}else{
+				interator += 1;
+			}
+	}
+}
+
+static void phase2(graph_t* g,arg_t* threadlist){
+	pr("Entering phase 2 function\n");
+	instruct* tempInstruct;
+	
+
+	for (int i = 0; i < NUMBER_OF_THREADS; i++)
+	{	pr("Number of instuctions from Node %d: ",threadlist[i].index);
+		int intNumOfinstuct = threadlist[i].numberOfInstructions;
+		pr("%d\n",intNumOfinstuct);
+		
+		for (int j = 0; j < intNumOfinstuct; j++)
+		{
+			pr("Instruction %d: ",j);
+			tempInstruct =  &(threadlist[i].instructions[j]);
+			
+			if ((tempInstruct->relableOrPush) == 0)
+			{
+				pr("relable %d\n",id(g,tempInstruct->u));
+				relabel(g,tempInstruct->u);
+
+				
+			}else{
+				//pr("push %d from %d to %d\n",tempInstruct->amount,id(g,tempInstruct->u),id(g,tempInstruct->v));
+				//push(g,tempInstruct->u,tempInstruct->v,tempInstruct->edge ,tempInstruct->amount);
+				if(tempInstruct->u != NULL){
+					enter_excess(g,tempInstruct->u);
+				}
+				if (tempInstruct->v != NULL)
+				{
+					enter_excess(g,tempInstruct->v);
+				}
+				
+				
+			}
+
+			threadlist[i].numberOfInstructions -= 1;
+
+			
+
+		}
+		
+	}
+	
+	
+}
+
 static int preflow(graph_t* g)
 {
 	node_t*		s;
@@ -440,6 +686,7 @@ static int preflow(graph_t* g)
 	edge_t*		e;
 	list_t*		p;
 	int		b;
+	int             i;
 
 	s = g->s;
 	s->h = g->n;
@@ -456,55 +703,90 @@ static int preflow(graph_t* g)
 		p = p->next;
 
 		s->e += e->c;
-		push(g, s, other(s, e), e);
+		push(g, s, other(s, e), e,e->c);
+		enter_excess(g,other(s,e));
 	}
 	
 	/* then loop until only s and/or t have excess preflow. */
 
-	while ((u = leave_excess(g)) != NULL) {
+	//Barriers
+	pthread_barrier_t barrierInitial;
 
-		/* u is any node with excess preflow. */
+	//Barrier init
+	pthread_barrier_init(&barrierInitial,NULL,(NUMBER_OF_THREADS + 1));
 
-		pr("selected u = %d with ", id(g, u));
-		pr("h = %d and e = %d\n", u->h, u->e);
 
-		/* if we can push we must push and only if we could
-		 * not push anything, we are allowed to relabel.
-		 *
-		 * we can push to multiple nodes if we wish but
-		 * here we just push once for simplicity.
-		 *
-		 */
+	arg_t threads[NUMBER_OF_THREADS];
 
-		v = NULL;
-		p = u->edge;
-
-		while (p != NULL) {
-			e = p->edge;
-			p = p->next;
-
-			if (u == e->u) {
-				v = e->v;
-				b = 1;
-			} else {
-				v = e->u;
-				b = -1;
-			}
-
-			if (u->h > v->h && b * e->f < e->c)
-				break;
-			else
-				v = NULL;
-		}
-
-		if (v != NULL)
-			push(g, u, v, e);
-		else
-			relabel(g, u);
+	for (int i = 0; i < NUMBER_OF_THREADS; ++i)
+	{
+		threads[i].g = g;
+		threads[i].index = i;
+		threads[i].barrierStart = &barrierInitial;
+		threads[i].intNodesInArray = 0;
+		threads[i].numberOfInstructions = 0;
 	}
 
+	
+
+
+
+
+	pr("Begining Thread Creation\n");
+	for (i = 0; i < NUMBER_OF_THREADS; i += 1){
+		pr("Creating thread %d\n",i);
+		pthread_create( &threads[i].pthread, NULL, work,&threads[i]);
+		
+	}
+
+	pthread_barrier_wait(&barrierInitial);
+
+	distributeNodes(g,threads);
+
+	pr("Main is waiting at initial Barrier\n");
+	pthread_barrier_wait(&barrierInitial);
+	pr("Main is done waiting at initial Barrier, waiting for inital phase 1\n");
+
+
+	pthread_barrier_wait(&barrierInitial);
+	pr("Main starting intial Phase 2\n");
+
+	while (1)
+	{	
+		pr("Loop start\n");
+		phase2(g,threads);
+		if(g->excess == NULL){
+			pr("No excess after a phase 2, We're done folks\n");
+			break;
+		}
+		distributeNodes(g,threads);
+
+		//done with phase two start shit up
+		pthread_barrier_wait(&barrierInitial);
+
+		//wait for threads to be done with phase 1
+		pthread_barrier_wait(&barrierInitial);
+
+		
+	}
+	
+
+	
+
+	g->isDone = 1;
+	pthread_barrier_wait(&barrierInitial);
+
+
+
+	for (i = 0; i < NUMBER_OF_THREADS; i += 1){
+		pthread_join( threads[i].pthread, NULL);
+		//pr("Thread %d returned\n",i);
+		pr("Thread %d returned with %d processed nodes\n",i,threads[i].nodesProcessed);
+	}
 	return g->t->e;
 }
+
+
 
 static void free_graph(graph_t* g)
 {
@@ -533,6 +815,9 @@ int main(int argc, char* argv[])
 	int		n;	/* number of nodes.		*/
 	int		m;	/* number of edges.		*/
 
+	/*locks*/
+
+
 	progname = argv[0];	/* name is a string in argv[0]. */
 
 	in = stdin;		/* same as System.in in Java.	*/
@@ -547,6 +832,7 @@ int main(int argc, char* argv[])
 	g = new_graph(in, n, m);
 
 	fclose(in);
+
 
 	f = preflow(g);
 
