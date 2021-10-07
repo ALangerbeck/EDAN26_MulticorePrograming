@@ -35,7 +35,7 @@
 #include <string.h>
 #include <pthread.h>
 
-#define PRINT		0	/* enable/disable prints. */
+#define PRINT		1	/* enable/disable prints. */
 
 //GLOBALS
 #define NUMBER_OF_THREADS  (9)

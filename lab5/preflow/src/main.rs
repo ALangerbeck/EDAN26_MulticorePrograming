@@ -32,6 +32,10 @@ impl Edge {
         }
 }
 
+fn push(){
+
+}
+
 
 fn main() {
 
@@ -82,6 +86,7 @@ fn main() {
 	println!("initial pushes");
 	let iter = adj[s].iter();
 
+
 	// but nothing is done here yet...
 
 	while !excess.is_empty() {
@@ -89,6 +94,6 @@ fn main() {
 		let u = excess.pop_front().unwrap();
 	}
 
-	println!("f = {}", 0);
+	println!("f = {}", 2);
 
 }
