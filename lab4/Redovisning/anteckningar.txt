@@ -1,2 +1,10 @@
 Preflow lab0 38.10 med atomic 35.55
 Med atmomic var det betydligt fler maskininstructioner imellan 
+
+Q3. memory_order_seq_cst
+
+Q4. Tror inte det, bryr oss inte om synch bara att olika trådar inte ändrar samtidigt, Testade inga data race, det fungerar. Men borde vi få dataraces?
+
+Q5. Lite snabbare men inte signifikant.
+
+Q6. Memory order memory_order_sqc_cst, saker händer i en satt ordning, annars så kan vi få saker kan vi läsa att en ändring har skett innan ändring sker? Annars gömmer den värdet innan den är klar. Vi borde kunna få dataraces med relaxed?
