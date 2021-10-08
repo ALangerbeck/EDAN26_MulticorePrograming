@@ -6,6 +6,18 @@ use std::cmp;
 use std::thread;
 use std::collections::VecDeque;
 
+const DEBUG: bool = true;
+
+macro_rules! pr {
+    ($fmt_string:expr, $($arg:expr),*) => {
+            if DEBUG {println!($fmt_string, $($arg),*);}
+    };
+    
+    ($fmt_string:expr) => {
+            if DEBUG {println!($fmt_string);}
+    };
+}
+
 struct Node {
 	i:	usize,			/* index of itself for debugging.	*/
 	e:	i32,			/* excess preflow.			*/
@@ -30,9 +42,64 @@ impl Edge {
         fn new(uu:usize, vv:usize,cc:i32) -> Edge {
                 Edge { u: uu, v: vv, f: 0, c: cc }      
         }
+
+    fn other(&mut self,uid:&usize) -> usize{
+		 if( *uid == self.u){
+		 	self.v
+		 }else {
+		 	self.u
+		 }
+		 	
+
+    }
 }
 
-fn push(){
+fn enter_excess(excess:&mut VecDeque<usize>, nodeindex:&usize,n: &usize) {
+
+	if ((*nodeindex == 0) || (*nodeindex == n-1)) {
+		unimplemented!();
+	}
+	excess.push_back(*nodeindex);
+
+}
+
+fn leave_excess(excess:&mut VecDeque<usize>) -> usize {
+
+	excess.pop_front().unwrap()
+
+}
+
+fn push(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>, n: &usize){
+
+	let mut d : i32;
+
+	if(u.i == e.u){
+			d = cmp::min(u.e,e.c - e.f);
+			e.f += d;
+	}else {
+			d = cmp::min(u.e,e.c + e.f);
+			e.f -= d;
+	}
+
+	u.e -= d;
+	v.e += d;
+
+	if (u.e > 0) {
+
+		/* still some remaining so let u push more. */
+
+		enter_excess(excess, &u.i,&n);
+	}
+
+	if (v.e == d) {
+
+		/* since v has d excess now it had zero before and
+		 * can now push.
+		 *
+		 */
+
+		enter_excess(excess, &v.i,&n);
+	}
 
 }
 
@@ -84,16 +151,26 @@ fn main() {
 	}
 
 	println!("initial pushes");
+	
 	let iter = adj[s].iter();
 
 
-	// but nothing is done here yet...
+	for e in iter {
+		pr!("{}",node[edge[*e].lock().unwrap().other(&s)].lock().unwrap().i);
+		push(&node[s],&node[edge[*e].lock().unwrap().other(&s)].lock().unwrap(),edge[*e],&excess,&n);
+	}	
+
+	
+	// Push to all of Sources edges
+	
+	
+
 
 	while !excess.is_empty() {
 		let mut c = 0;
 		let u = excess.pop_front().unwrap();
 	}
 
-	println!("f = {}", 2);
+	println!("f = {}", 0);
 
 }
