@@ -44,6 +44,8 @@ impl Edge {
         }
 
     fn other(&mut self,uid:&usize) -> usize{
+
+    	 //pr!("What what");
 		 if( *uid == self.u){
 		 	self.v
 		 }else {
@@ -72,7 +74,7 @@ fn leave_excess(excess:&mut VecDeque<usize>) -> usize {
 fn push(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>, n: &usize){
 
 	pr!("Enter push");
-	let mut d : i32;
+	let d : i32;
 
 	if(u.i == e.u){
 			d = cmp::min(u.e,e.c - e.f);
@@ -106,6 +108,17 @@ fn push(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>, n: &us
 
 }
 
+fn relabel(excess:&mut VecDeque<usize>, n: &usize,u:&mut Node) {
+	pr!("Relabling");
+	u.h += 1;
+	enter_excess(excess,&n,&mut u.i);
+}
+
+
+fn push2(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>,n: &usize){
+	pr!("Yo MOM");
+}
+
 
 fn main() {
 
@@ -118,6 +131,7 @@ fn main() {
 	let mut adj: Vec<LinkedList<usize>> =Vec::with_capacity(n);
 	let mut excess: VecDeque<usize> = VecDeque::new();
 	let debug = false;
+	let mut edgeIndex: usize;
 
 	let s = 0;
 	let t = n-1;
@@ -155,23 +169,62 @@ fn main() {
 
 	println!("initial pushes");
 	
-	let iter = adj[s].iter();
+	let mut iter = adj[s].iter();
 
 
 	for e in iter {
 		//pr!("{}",node[edge[*e].lock().unwrap().other(&s)].lock().unwrap().i);
-		push(&mut node[s].lock().unwrap(),&mut node[edge[*e].lock().unwrap().other(&s)].lock().unwrap(),&mut edge[*e].lock().unwrap(),&mut excess,&n);
+		//TellMeAJoke();
+		let mut vindex = edge[*e].lock().unwrap().other(&s);
+		let initExcess: i32;
+		initExcess = edge[*e].lock().unwrap().c;
+		node[0].lock().unwrap().e += initExcess;
+		push(&mut node[s].lock().unwrap(),&mut node[vindex].lock().unwrap(),&mut edge[*e].lock().unwrap(),&mut excess,&n);
+
 	}	
 
 	
 	// Push to all of Sources edges
 	
 	
+	let mut u: usize;
+	let mut v: usize;
 
-
+	pr!("Starting to go through Excess");
 	while !excess.is_empty() {
-		let mut c = 0;
-		let u = excess.pop_front().unwrap();
+		pr!("New Node");
+		let mut b = 0;
+		u = excess.pop_front().unwrap();
+		v = n;
+		edgeIndex = 0;
+		
+		//index out of bounds on last node
+		iter = adj[u].iter();
+
+		for e in iter{
+			edgeIndex = *e;
+			pr!("New Edge");
+			if (u == edge[*e].lock().unwrap().u){
+				v = edge[*e].lock().unwrap().v;
+				b = 1;
+			}else{
+				v = edge[*e].lock().unwrap().u;
+				b = -1;
+			}
+
+			if ((node[u].lock().unwrap().h > node[v].lock().unwrap().h) && (b*edge[*e].lock().unwrap().f < edge[*e].lock().unwrap().c) ) {
+				break;
+			}else {
+				v = n;
+			}
+
+		}
+
+		if v != n {
+				push(&mut node[u].lock().unwrap(),&mut node[v].lock().unwrap(),&mut edge[edgeIndex].lock().unwrap(),&mut excess,&n);
+			}else{
+				relabel(&mut excess, &n,&mut node[u].lock().unwrap());
+			}
 	}
 
 	println!("f = {}", 0);
