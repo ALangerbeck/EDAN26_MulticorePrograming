@@ -71,6 +71,7 @@ fn leave_excess(excess:&mut VecDeque<usize>) -> usize {
 
 fn push(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>, n: &usize){
 
+	pr!("Enter push");
 	let mut d : i32;
 
 	if(u.i == e.u){
@@ -100,6 +101,8 @@ fn push(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>, n: &us
 
 		enter_excess(excess, &v.i,&n);
 	}
+
+	pr!("Pushing {} from {} to {}",d,u.i,v.i);
 
 }
 
@@ -156,8 +159,8 @@ fn main() {
 
 
 	for e in iter {
-		pr!("{}",node[edge[*e].lock().unwrap().other(&s)].lock().unwrap().i);
-		push(&node[s],&node[edge[*e].lock().unwrap().other(&s)].lock().unwrap(),edge[*e],&excess,&n);
+		//pr!("{}",node[edge[*e].lock().unwrap().other(&s)].lock().unwrap().i);
+		push(&mut node[s].lock().unwrap(),&mut node[edge[*e].lock().unwrap().other(&s)].lock().unwrap(),&mut edge[*e].lock().unwrap(),&mut excess,&n);
 	}	
 
 	
