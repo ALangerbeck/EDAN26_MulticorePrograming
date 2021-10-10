@@ -3,10 +3,10 @@
 use std::sync::{Mutex,Arc};
 use std::collections::LinkedList;
 use std::cmp;
-use std::thread;
+//use std::thread;
 use std::collections::VecDeque;
 
-const DEBUG: bool = true;
+const DEBUG: bool = false;
 
 macro_rules! pr {
     ($fmt_string:expr, $($arg:expr),*) => {
@@ -46,7 +46,7 @@ impl Edge {
     fn other(&mut self,uid:&usize) -> usize{
 
     	 //pr!("What what");
-		 if( *uid == self.u){
+		 if *uid == self.u{
 		 	self.v
 		 }else {
 		 	self.u
@@ -58,10 +58,9 @@ impl Edge {
 
 fn enter_excess(excess:&mut VecDeque<usize>, nodeindex:&usize,n: &usize) {
 
-	if ((*nodeindex == 0) || (*nodeindex == n-1)) {
-		unimplemented!();
+	if (*nodeindex != 0) && (*nodeindex != n-1) {
+		excess.push_back(*nodeindex);	
 	}
-	excess.push_back(*nodeindex);
 
 }
 
@@ -76,7 +75,7 @@ fn push(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>, n: &us
 	pr!("Enter push");
 	let d : i32;
 
-	if(u.i == e.u){
+	if u.i == e.u {
 			d = cmp::min(u.e,e.c - e.f);
 			e.f += d;
 	}else {
@@ -87,14 +86,14 @@ fn push(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>, n: &us
 	u.e -= d;
 	v.e += d;
 
-	if (u.e > 0) {
+	if u.e > 0 {
 
 		/* still some remaining so let u push more. */
 
 		enter_excess(excess, &u.i,&n);
 	}
 
-	if (v.e == d) {
+	if v.e == d {
 
 		/* since v has d excess now it had zero before and
 		 * can now push.
@@ -111,13 +110,13 @@ fn push(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>, n: &us
 fn relabel(excess:&mut VecDeque<usize>, n: &usize,u:&mut Node) {
 	pr!("Relabling");
 	u.h += 1;
-	enter_excess(excess,&n,&mut u.i);
+	enter_excess(excess,&u.i,&n);
 }
 
 
-fn push2(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>,n: &usize){
+/*fn push2(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>,n: &usize){
 	pr!("Yo MOM");
-}
+}*/
 
 
 fn main() {
@@ -131,10 +130,10 @@ fn main() {
 	let mut adj: Vec<LinkedList<usize>> =Vec::with_capacity(n);
 	let mut excess: VecDeque<usize> = VecDeque::new();
 	let debug = false;
-	let mut edgeIndex: usize;
+	let mut edge_index: usize;
 
 	let s = 0;
-	let t = n-1;
+	let _t = n-1;
 
 	println!("n = {}", n);
 	println!("m = {}", m);
@@ -167,18 +166,20 @@ fn main() {
 		}
 	}
 
-	println!("initial pushes");
-	
+	pr!("initial pushes");
+
+
+	node[s].lock().unwrap().h = n as i32;
 	let mut iter = adj[s].iter();
 
 
 	for e in iter {
 		//pr!("{}",node[edge[*e].lock().unwrap().other(&s)].lock().unwrap().i);
 		//TellMeAJoke();
-		let mut vindex = edge[*e].lock().unwrap().other(&s);
-		let initExcess: i32;
-		initExcess = edge[*e].lock().unwrap().c;
-		node[0].lock().unwrap().e += initExcess;
+		let vindex = edge[*e].lock().unwrap().other(&s);
+		let init_excess: i32;
+		init_excess = edge[*e].lock().unwrap().c;
+		node[0].lock().unwrap().e += init_excess;
 		push(&mut node[s].lock().unwrap(),&mut node[vindex].lock().unwrap(),&mut edge[*e].lock().unwrap(),&mut excess,&n);
 
 	}	
@@ -189,22 +190,25 @@ fn main() {
 	
 	let mut u: usize;
 	let mut v: usize;
+	let mut f: i32;
+	let mut cap :i32;
 
 	pr!("Starting to go through Excess");
 	while !excess.is_empty() {
-		pr!("New Node");
-		let mut b = 0;
-		u = excess.pop_front().unwrap();
+		let mut b :i32;
+		u = leave_excess(&mut excess); //excess.pop_front().unwrap();
 		v = n;
-		edgeIndex = 0;
+		edge_index = 0;
+
+		pr!("New Node with id {}",u);
 		
 		//index out of bounds on last node
 		iter = adj[u].iter();
 
 		for e in iter{
-			edgeIndex = *e;
+			edge_index = *e;
 			pr!("New Edge");
-			if (u == edge[*e].lock().unwrap().u){
+			if u == edge[*e].lock().unwrap().u{
 				v = edge[*e].lock().unwrap().v;
 				b = 1;
 			}else{
@@ -212,21 +216,28 @@ fn main() {
 				b = -1;
 			}
 
-			if ((node[u].lock().unwrap().h > node[v].lock().unwrap().h) && (b*edge[*e].lock().unwrap().f < edge[*e].lock().unwrap().c) ) {
+			f = edge[*e].lock().unwrap().f;
+			cap = edge[*e].lock().unwrap().c;
+
+			//pr!("now to see if push or relable");
+
+			if (node[u].lock().unwrap().h > node[v].lock().unwrap().h) && (b*f < cap) {
+				//pr!("now to break");
 				break;
 			}else {
+				//pr!("now relabling");
 				v = n;
 			}
 
 		}
 
 		if v != n {
-				push(&mut node[u].lock().unwrap(),&mut node[v].lock().unwrap(),&mut edge[edgeIndex].lock().unwrap(),&mut excess,&n);
+				push(&mut node[u].lock().unwrap(),&mut node[v].lock().unwrap(),&mut edge[edge_index].lock().unwrap(),&mut excess,&n);
 			}else{
 				relabel(&mut excess, &n,&mut node[u].lock().unwrap());
 			}
 	}
 
-	println!("f = {}", 0);
+	println!("f = {}", node[n-1].lock().unwrap().e);
 
 }
