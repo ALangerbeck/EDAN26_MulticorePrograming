@@ -1,12 +1,13 @@
 #[macro_use] extern crate text_io;
 
-use std::sync::{Mutex,Arc};
+use std::sync::{Mutex,Arc,RwLock};
 use std::collections::LinkedList;
 use std::cmp;
-//use std::thread;
+use std::thread;
 use std::collections::VecDeque;
 
-const DEBUG: bool = false;
+const DEBUG: bool = true;
+const NUMBER_OF_THREADS: i32 = 10;
 
 macro_rules! pr {
     ($fmt_string:expr, $($arg:expr),*) => {
@@ -130,7 +131,7 @@ fn main() {
 	let mut adj: Vec<LinkedList<usize>> =Vec::with_capacity(n);
 	let mut excess: VecDeque<usize> = VecDeque::new();
 	let debug = false;
-	let mut edge_index: usize;
+	//let mut edge_index: usize;
 
 	let s = 0;
 	let _t = n-1;
@@ -170,7 +171,7 @@ fn main() {
 
 
 	node[s].lock().unwrap().h = n as i32;
-	let mut iter = adj[s].iter();
+	let iter = adj[s].iter();
 
 
 	for e in iter {
@@ -188,11 +189,147 @@ fn main() {
 	// Push to all of Sources edges
 	
 	
+	/*
 	let mut u: usize;
 	let mut v: usize;
 	let mut f: i32;
 	let mut cap :i32;
+	*/
 
+
+	//let m = Arc::new(Mutex::new(0));
+	let mut a = vec![];
+	let excess_external = Arc::new(Mutex::new(excess));
+	let adj_acc = Arc::new(RwLock::new(adj));
+	let node_acc = Arc::new(RwLock::new(node));
+	let edge_acc = Arc::new(RwLock::new(edge));
+
+
+	for _ in 0..NUMBER_OF_THREADS {
+		
+		//let c = Arc::clone(&m);
+		let excess_internal = excess_external.clone();
+		let adj_internal = adj_acc.clone();
+		let node_internal = node_acc.clone();
+		let edge_internal = edge_acc.clone();
+		
+		let h = thread::spawn(move || {
+
+			let mut u: usize;
+			let mut v: usize;
+			let mut f: i32;
+			let mut cap :i32;
+			let mut edge_index: usize;
+
+			let node_array = node_internal.read().unwrap();
+			let adj_array = adj_internal.read().unwrap();
+			let edge_array = edge_internal.read().unwrap();
+			let mut iter;
+			
+
+			while !excess_internal.lock().unwrap().is_empty() {
+
+				let mut b :i32;
+				u = leave_excess(&mut excess_internal.lock().unwrap()); //excess.pop_front().unwrap();
+				v = n;
+				edge_index = 0;
+
+				pr!("New Node with id {}",u);
+				
+				//index out of bounds on last node
+				iter = adj_array[u].iter();
+
+				for e in iter{
+					//let  edge_array = edge_acc.read().unwrap();
+					edge_index = *e;
+					pr!("New Edge");
+					if u == edge_array[*e].lock().unwrap().u{
+						v = edge_array[*e].lock().unwrap().v;
+						b = 1;
+					}else{
+						v = edge_array[*e].lock().unwrap().u;
+						b = -1;
+					}
+
+					pr!("1");
+
+					f = edge_array[*e].lock().unwrap().f;
+					cap = edge_array[*e].lock().unwrap().c;
+
+					pr!("2");
+					//let mut  h1 :i32;
+					//let mut  h2	:i32;
+
+					if u < v{
+							pr!("2.1.1");
+							//here's the fuckup
+							let h1 = node_array[u].lock().unwrap().h;
+							let h2 = node_array[v].lock().unwrap().h;
+							pr!("2.1.2");
+							if h1 > h2 && (b*f < cap) {
+								//pr!("now to break");
+								pr!("2.1.3");
+								break;
+							}else{
+								pr!("2.1.4");
+								v = n;
+							}
+							pr!("3");
+							
+					}else{
+							pr!("2.2");
+							//here's the fuckup
+							let h2 = node_array[v].lock().unwrap().h;
+							let h1 = node_array[u].lock().unwrap().h;
+							pr!("2.2.2");
+							if h1 > h2 && (b*f < cap) {
+								pr!("2.2.3");
+								break;
+							}else {
+								pr!("2.2.4");
+								v = n;
+							}
+							pr!("4");
+					} 
+
+					/*if (node_array[u].lock().unwrap().h > node_array[v].lock().unwrap().h) && (b*f < cap) {
+						//pr!("now to break");
+						break;
+					}else {
+						//pr!("now relabling");
+						v = n;
+					}
+					pr!("3");*/
+				}
+
+
+				if v != n {
+
+						if u < v{
+							let mut node_u = &mut node_array[u].lock().unwrap();
+							let mut node_v = &mut node_array[v].lock().unwrap();
+							push(&mut node_u,&mut node_v,&mut edge_array[edge_index].lock().unwrap(),&mut excess_internal.lock().unwrap(),&n);
+						}else{
+							let mut node_v = &mut node_array[v].lock().unwrap();
+							let mut node_u = &mut node_array[u].lock().unwrap();
+							push(&mut node_u,&mut node_v,&mut edge_array[edge_index].lock().unwrap(),&mut excess_internal.lock().unwrap(),&n);	
+						}
+
+					}else{
+						relabel(&mut excess_internal.lock().unwrap(), &n,&mut node_array[u].lock().unwrap());
+					}
+			}
+		});
+		
+		a.push(h);
+	}
+
+	for h in a {
+		h.join().unwrap();
+	}
+		println!("f = {}", node_acc.read().unwrap()[n-1].lock().unwrap().e );
+
+   /* //Part that needs to be moved inside Threads
 	pr!("Starting to go through Excess");
 	while !excess.is_empty() {
 		let mut b :i32;
@@ -237,7 +374,9 @@ fn main() {
 				relabel(&mut excess, &n,&mut node[u].lock().unwrap());
 			}
 	}
+	*/
+	//end if thread part
 
-	println!("f = {}", node[n-1].lock().unwrap().e);
+	//println!("f = {}", node[n-1].lock().unwrap().e);
 
 }
