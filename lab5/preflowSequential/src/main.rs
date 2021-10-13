@@ -6,7 +6,7 @@ use std::cmp;
 //use std::thread;
 use std::collections::VecDeque;
 
-const DEBUG: bool = false;
+const DEBUG: bool = true;
 
 macro_rules! pr {
     ($fmt_string:expr, $($arg:expr),*) => {
@@ -200,14 +200,14 @@ fn main() {
 		v = n;
 		edge_index = 0;
 
-		pr!("New Node with id {}",u);
+		//pr!("New Node with id {}",u);
 		
 		//index out of bounds on last node
 		iter = adj[u].iter();
 
 		for e in iter{
 			edge_index = *e;
-			pr!("New Edge");
+			//pr!("New Edge");
 			if u == edge[*e].lock().unwrap().u{
 				v = edge[*e].lock().unwrap().v;
 				b = 1;

@@ -6,8 +6,8 @@ use std::cmp;
 use std::thread;
 use std::collections::VecDeque;
 
-const DEBUG: bool = true;
-const NUMBER_OF_THREADS: i32 = 10;
+const DEBUG: bool = false;
+const NUMBER_OF_THREADS: i32 = 1;
 
 macro_rules! pr {
     ($fmt_string:expr, $($arg:expr),*) => {
@@ -336,12 +336,10 @@ fn main() {
 		u = leave_excess(&mut excess); //excess.pop_front().unwrap();
 		v = n;
 		edge_index = 0;
-
 		pr!("New Node with id {}",u);
 		
 		//index out of bounds on last node
 		iter = adj[u].iter();
-
 		for e in iter{
 			edge_index = *e;
 			pr!("New Edge");
@@ -352,12 +350,9 @@ fn main() {
 				v = edge[*e].lock().unwrap().u;
 				b = -1;
 			}
-
 			f = edge[*e].lock().unwrap().f;
 			cap = edge[*e].lock().unwrap().c;
-
 			//pr!("now to see if push or relable");
-
 			if (node[u].lock().unwrap().h > node[v].lock().unwrap().h) && (b*f < cap) {
 				//pr!("now to break");
 				break;
@@ -365,9 +360,7 @@ fn main() {
 				//pr!("now relabling");
 				v = n;
 			}
-
 		}
-
 		if v != n {
 				push(&mut node[u].lock().unwrap(),&mut node[v].lock().unwrap(),&mut edge[edge_index].lock().unwrap(),&mut excess,&n);
 			}else{

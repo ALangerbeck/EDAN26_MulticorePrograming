@@ -1,1 +1,1 @@
-/home/johngregory/Documents/EDAN26\ Multicore/Labs/lab5/preflow/target/debug/preflow: /home/johngregory/Documents/EDAN26\ Multicore/Labs/lab5/preflow/src/main.rs
+/home/johngregory/Documents/EDAN26\ Multicore/Labs/lab5/preflowSequential/target/debug/preflow: /home/johngregory/Documents/EDAN26\ Multicore/Labs/lab5/preflowSequential/src/main.rs
