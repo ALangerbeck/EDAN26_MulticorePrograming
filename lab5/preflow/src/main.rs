@@ -6,8 +6,8 @@ use std::cmp;
 use std::thread;
 use std::collections::VecDeque;
 
-const DEBUG: bool = true;
-const NUMBER_OF_THREADS: i32 = 3;
+const DEBUG: bool = false;
+const NUMBER_OF_THREADS: i32 = 1;
 
 macro_rules! pr {
     ($fmt_string:expr, $($arg:expr),*) => {
@@ -238,10 +238,11 @@ fn main() {
 					
 					if u < v {
 
-						//pr!("1");
+						pr!("1");
 
 						let mut node_u = node_array[u].lock().unwrap();
 						let mut node_v = node_array[v].lock().unwrap();
+						pr!("1.1");
 
 						f = edge.f;
 						cap = edge.c;
@@ -255,27 +256,26 @@ fn main() {
 										
 							v = n;
 						}
-						//pr!("2");
+						
 					}else{
-						pr!("3");
-						// ------------------deadlocks here------------
+						pr!("2");
 						let mut node_v = node_array[v].lock().unwrap();
-						//pr!("3.1");
 						let mut node_u = node_array[u].lock().unwrap();
-						pr!("3.2");
+						pr!("2.2");
 
 						f = edge.f;
 						cap = edge.c;
 
-						
+						//pr!("3.3");
 						if node_u.h > node_v.h && (b*f < cap) {
+							//pr!("3.4");
 							push(&mut node_u,&mut node_v,&mut edge,&mut excess_internal.lock().unwrap(),&n);
 									break;
 						}else{
 									
 							v = n;
 						}
-						//pr!("4");
+						//pr!("2.2");
 					}						
 					
 				}
