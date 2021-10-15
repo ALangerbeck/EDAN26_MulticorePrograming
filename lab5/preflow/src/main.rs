@@ -7,7 +7,7 @@ use std::thread;
 use std::collections::VecDeque;
 
 const DEBUG: bool = false;
-const NUMBER_OF_THREADS: i32 = 1;
+const NUMBER_OF_THREADS: i32 = 10;
 
 macro_rules! pr {
     ($fmt_string:expr, $($arg:expr),*) => {
@@ -210,10 +210,21 @@ fn main() {
 			let mut iter;
 			
 
-			while !excess_internal.lock().unwrap().is_empty() {
+			loop{
 
+				//let u:usize;
 				let mut b :i32;
-				u = leave_excess(&mut excess_internal.lock().unwrap()); //excess.pop_front().unwrap();
+				
+				{
+				let mut exc = excess_internal.lock().unwrap();
+
+
+				if exc.is_empty(){
+					break;
+				}
+				u = leave_excess(&mut exc); //excess.pop_front().unwrap();
+				}
+
 				v = n;
 
 				//pr!("New Node with id {}",u);
@@ -239,7 +250,6 @@ fn main() {
 					if u < v {
 
 						pr!("1");
-
 						let mut node_u = node_array[u].lock().unwrap();
 						let mut node_v = node_array[v].lock().unwrap();
 						pr!("1.1");
@@ -249,7 +259,6 @@ fn main() {
 
 							
 						if node_u.h > node_v.h && (b*f < cap) {
-										
 							push(&mut node_u,&mut node_v,&mut edge,&mut excess_internal.lock().unwrap(),&n);
 							break;
 						}else{
@@ -281,7 +290,9 @@ fn main() {
 				}
 
 				if v == n {
-						relabel(&mut excess_internal.lock().unwrap(), &n,&mut node_array[u].lock().unwrap());
+
+						let mut node_u = node_array[u].lock().unwrap();
+						relabel(&mut excess_internal.lock().unwrap(), &n,&mut node_u);
 				}
 			}
 		});
