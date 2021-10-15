@@ -1,7 +1,7 @@
 (require '[clojure.string :as str])		; for splitting an input line into words
 
 (def num-threads 1)
-(def debug false)
+(def debug true)
 
 (defn prepend [list value] (cons value list))	; put value at the front of list
 
@@ -57,9 +57,11 @@
 (defn insert [excess-nodes v]
 	(ref-set excess-nodes (cons v @excess-nodes)))
 
+
 (defn check-insert [excess-nodes v s t]
 	(if (and (not= v s) (not= v t))
 		(insert excess-nodes v)))
+
 
 (defn push [edge-index u nodes edges excess-nodes change s t]
 	(let [v 	(other @(edges edge-index) u)]
@@ -122,6 +124,36 @@
 (def nodes (vec (for [i (range n)] (ref (->node i 0 (if (= i 0) n 0) '())))))
 
 (def edges (vec (for [i (range m)] (ref (->edge 0 0 0 0)))))
+
+(defn activate [adj nodes edges u excess-nodes]
+
+		(if (or (not (empty? adj)) (not (has-excess u excess-nodes)))
+			(do 
+			; give source this capacity as excess so the push will be accepted
+				(if (= u (u-is-edge-u (first adj) u ))
+					(do
+							(let [v (other (first adj) u)])
+							(let [b 1])
+
+
+					)
+					(if (not= u (u-is-edge-u (first adj) u ))
+						(do
+							;you were here......
+						)
+					)
+
+			(push (first adj) s nodes edges excess-nodes change s t)
+			(activate (rest adj) nodes edges u excess-nodes)
+			)
+		)
+	)
+
+(defn work [excess-nodes]
+(if (not= (remove-any) -1)
+	(dosync  
+
+	)))
 
 (dosync (read-graph 0 m nodes edges))
 

@@ -7,7 +7,7 @@ use std::thread;
 use std::collections::VecDeque;
 
 const DEBUG: bool = false;
-const NUMBER_OF_THREADS: i32 = 1;
+const NUMBER_OF_THREADS: i32 = 10;
 
 macro_rules! pr {
     ($fmt_string:expr, $($arg:expr),*) => {
@@ -73,7 +73,7 @@ fn leave_excess(excess:&mut VecDeque<usize>) -> usize {
 
 fn push(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>, n: &usize){
 
-	pr!("Enter push");
+	//r!("Enter push");
 	let d : i32;
 
 	if u.i == e.u {
@@ -109,16 +109,10 @@ fn push(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>, n: &us
 }
 
 fn relabel(excess:&mut VecDeque<usize>, n: &usize,u:&mut Node) {
-	pr!("Relabling");
+	pr!("Relabling node {}",u.i);
 	u.h += 1;
 	enter_excess(excess,&u.i,&n);
 }
-
-
-/*fn push2(u:&mut Node,v:&mut Node,e: &mut Edge,excess:&mut VecDeque<usize>,n: &usize){
-	pr!("Yo MOM");
-}*/
-
 
 fn main() {
 
@@ -186,18 +180,7 @@ fn main() {
 	}	
 
 	
-	// Push to all of Sources edges
 	
-	
-	/*
-	let mut u: usize;
-	let mut v: usize;
-	let mut f: i32;
-	let mut cap :i32;
-	*/
-
-
-	//let m = Arc::new(Mutex::new(0));
 	let mut a = vec![];
 	let excess_external = Arc::new(Mutex::new(excess));
 	let adj_acc = Arc::new(RwLock::new(adj));
@@ -219,7 +202,7 @@ fn main() {
 			let mut v: usize;
 			let mut f: i32;
 			let mut cap :i32;
-			let mut edge_index: usize;
+			//let mut edge_index: usize;
 
 			let node_array = node_internal.read().unwrap();
 			let adj_array = adj_internal.read().unwrap();
@@ -227,97 +210,90 @@ fn main() {
 			let mut iter;
 			
 
-			while !excess_internal.lock().unwrap().is_empty() {
+			loop{
 
+				//let u:usize;
 				let mut b :i32;
-				u = leave_excess(&mut excess_internal.lock().unwrap()); //excess.pop_front().unwrap();
-				v = n;
-				edge_index = 0;
-
-				pr!("New Node with id {}",u);
 				
-				//index out of bounds on last node
+				{
+				let mut exc = excess_internal.lock().unwrap();
+
+
+				if exc.is_empty(){
+					break;
+				}
+				u = leave_excess(&mut exc); //excess.pop_front().unwrap();
+				}
+
+				v = n;
+
+				//pr!("New Node with id {}",u);
+				
 				iter = adj_array[u].iter();
 
 				for e in iter{
-					//let  edge_array = edge_acc.read().unwrap();
-					edge_index = *e;
-					pr!("New Edge");
-					if u == edge_array[*e].lock().unwrap().u{
-						v = edge_array[*e].lock().unwrap().v;
+					//pr!("0");
+					let mut edge = edge_array[*e].lock().unwrap();
+					//pr!("New Edge");
+					if u == edge.u{
+						//pr!("0.1");
+						v = edge.v;
 						b = 1;
+						//pr!("0.1.1");
 					}else{
-						v = edge_array[*e].lock().unwrap().u;
+						//pr!("0.2");
+						v = edge.u;
 						b = -1;
 					}
 
-					pr!("1");
+					
+					if u < v {
 
-					f = edge_array[*e].lock().unwrap().f;
-					cap = edge_array[*e].lock().unwrap().c;
+						pr!("1");
+						let mut node_u = node_array[u].lock().unwrap();
+						let mut node_v = node_array[v].lock().unwrap();
+						pr!("1.1");
 
-					pr!("2");
-					//let mut  h1 :i32;
-					//let mut  h2	:i32;
+						f = edge.f;
+						cap = edge.c;
 
-					if u < v{
-							pr!("2.1.1");
-							//here's the fuckup
-							let h1 = node_array[u].lock().unwrap().h;
-							let h2 = node_array[v].lock().unwrap().h;
-							pr!("2.1.2");
-							if h1 > h2 && (b*f < cap) {
-								//pr!("now to break");
-								pr!("2.1.3");
-								break;
-							}else{
-								pr!("2.1.4");
-								v = n;
-							}
-							pr!("3");
 							
+						if node_u.h > node_v.h && (b*f < cap) {
+							push(&mut node_u,&mut node_v,&mut edge,&mut excess_internal.lock().unwrap(),&n);
+							break;
+						}else{
+										
+							v = n;
+						}
+						
 					}else{
-							pr!("2.2");
-							//here's the fuckup
-							let h2 = node_array[v].lock().unwrap().h;
-							let h1 = node_array[u].lock().unwrap().h;
-							pr!("2.2.2");
-							if h1 > h2 && (b*f < cap) {
-								pr!("2.2.3");
-								break;
-							}else {
-								pr!("2.2.4");
-								v = n;
-							}
-							pr!("4");
-					} 
+						pr!("2");
+						let mut node_v = node_array[v].lock().unwrap();
+						let mut node_u = node_array[u].lock().unwrap();
+						pr!("2.2");
 
-					/*if (node_array[u].lock().unwrap().h > node_array[v].lock().unwrap().h) && (b*f < cap) {
-						//pr!("now to break");
-						break;
-					}else {
-						//pr!("now relabling");
-						v = n;
-					}
-					pr!("3");*/
+						f = edge.f;
+						cap = edge.c;
+
+						//pr!("3.3");
+						if node_u.h > node_v.h && (b*f < cap) {
+							//pr!("3.4");
+							push(&mut node_u,&mut node_v,&mut edge,&mut excess_internal.lock().unwrap(),&n);
+									break;
+						}else{
+									
+							v = n;
+						}
+						//pr!("2.2");
+					}						
+					
 				}
 
+				if v == n {
 
-				if v != n {
-
-						if u < v{
-							let mut node_u = &mut node_array[u].lock().unwrap();
-							let mut node_v = &mut node_array[v].lock().unwrap();
-							push(&mut node_u,&mut node_v,&mut edge_array[edge_index].lock().unwrap(),&mut excess_internal.lock().unwrap(),&n);
-						}else{
-							let mut node_v = &mut node_array[v].lock().unwrap();
-							let mut node_u = &mut node_array[u].lock().unwrap();
-							push(&mut node_u,&mut node_v,&mut edge_array[edge_index].lock().unwrap(),&mut excess_internal.lock().unwrap(),&n);	
-						}
-
-					}else{
-						relabel(&mut excess_internal.lock().unwrap(), &n,&mut node_array[u].lock().unwrap());
-					}
+						let mut node_u = node_array[u].lock().unwrap();
+						relabel(&mut excess_internal.lock().unwrap(), &n,&mut node_u);
+				}
 			}
 		});
 		
