@@ -1,6 +1,7 @@
 (require '[clojure.string :as str])		; for splitting an input line into words
 
 (def debug false)
+(def num-threads 4)
 
 (defn abs [x]
     (if (> x 0) x (* -1 x)))
@@ -47,17 +48,21 @@
 	(= (:u edge) u))
 
 (defn increase-flow [edges i d]
-	(ref-set (edges i) (update @(edges i) :f + d)))
+(dosync
+	(ref-set (edges i) (update @(edges i) :f + d))))
 
 (defn decrease-flow [edges i d]
-	(ref-set (edges i) (update @(edges i) :f - d)))
+(dosync
+	(ref-set (edges i) (update @(edges i) :f - d))))
 
 (defn move-excess [nodes u v d]
+(dosync
 	(ref-set (nodes u) (update @(nodes u) :e - d))
-	(ref-set (nodes v) (update @(nodes v) :e + d)))
+	(ref-set (nodes v) (update @(nodes v) :e + d))))
 
 (defn insert [excess-nodes v]
-	(ref-set excess-nodes (cons v @excess-nodes)))
+(dosync
+	(ref-set excess-nodes (cons v @excess-nodes))))
 
 (defn check-insert [excess-nodes v s t]
 	(if (and (not= v s) (not= v t))
@@ -122,9 +127,9 @@
 
 
 
-
+	(dosync
 	(assert (>= (node-excess @(nodes u)) 0))
-	(assert (<= (abs (edge-flow @(edges i))) (edge-capacity @(edges i))))
+	(assert (<= (abs (edge-flow @(edges i))) (edge-capacity @(edges i)))))
 
 	(if (has-excess u nodes)
 		(do (check-insert excess-nodes u s t)
@@ -184,10 +189,10 @@
 
 
 (defn relabel [nodes u]
+	(dosync
     (ref-set (nodes u) (update @(nodes u) :h + 1))
     (if debug (println "Relabling "u))
-    (check-insert excess-nodes u s t)
-)
+    (check-insert excess-nodes u s t)))
 
 
 (defn activate [adj u nodes edges s t excess-nodes]
@@ -231,12 +236,21 @@
 		(activateNode u nodes edges s t excess-nodes)
 		(recur nodes edges s t excess-nodes)))))
 
+	(defn doDaWork [] (dosync (work nodes edges s t excess-nodes)))
+
 (dosync (read-graph 0 m nodes edges))
 
 (defn preflow []
 
 	(dosync (initial-pushes nodes edges s t excess-nodes))
-	(dosync (work nodes edges s t excess-nodes))
+	;(dosync (work nodes edges s t excess-nodes))
+
+	(println "threads: " num-threads)
+
+	(let [threads (repeatedly num-threads #(Thread. doDaWork))]
+	(run! #(.start %) threads)
+	(run! #(.join %) threads))
+
 
 	(println "f =" (node-excess @(nodes t))))
 
