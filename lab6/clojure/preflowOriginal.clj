@@ -2,9 +2,6 @@
 
 (def debug false)
 
-(defn abs [x]
-    (if (> x 0) x (* -1 x)))
-
 (defn prepend [list value] (cons value list))	; put value at the front of list
 
 (defrecord node [i e h adj])			; index excess-preflow height adjacency-list
@@ -63,7 +60,7 @@
 	(if (and (not= v s) (not= v t))
 		(insert excess-nodes v)))
 
-(defn push [edge-index u nodes edges excess-nodes s t]
+(defn push [edge-index u nodes edges excess-nodes change s t]
 	(let [v 	(other @(edges edge-index) u)]
 	(let [uh	(node-height @(nodes u))]
 	(let [vh	(node-height @(nodes v))]
@@ -71,11 +68,10 @@
 	(let [i		edge-index]
 	(let [f 	(edge-flow @(edges i))]
 	(let [c 	(edge-capacity @(edges i))]
-	(let [ve (node-excess @(nodes v))]
 
 	(if debug
 		(do
-			(println "--------- before push -------------------")
+			(println "--------- push -------------------")
 			(println "i = " i)
 			(println "u = " u)
 			(println "uh = " uh)
@@ -83,61 +79,7 @@
 			(println "f = " f)
 			(println "c = " c)
 			(println "v = " v)
-			(println "vh = " vh)
-			(println "ve = " ve)))
-
-	(if (u-is-edge-u @(edges edge-index) u) 
-		(do
-				(let [d (min (node-excess @(nodes u)) (- (edge-capacity @(edges edge-index)) (edge-flow @(edges edge-index))))]
-					(increase-flow edges edge-index  d)
-						(move-excess nodes u v d)		
-				))
-		(do
-				(let [d (min (node-excess @(nodes u)) (+ (edge-capacity @(edges edge-index)) (edge-flow @(edges edge-index))))]
-					(decrease-flow edges edge-index d)
-						(move-excess nodes u v d)		
-				)))
-
-	(let [v 	(other @(edges edge-index) u)]
-	(let [uh	(node-height @(nodes u))]
-	(let [vh	(node-height @(nodes v))]
-	(let [e 	(node-excess @(nodes u))]
-	(let [i		edge-index]
-	(let [f 	(edge-flow @(edges i))]
-	(let [c 	(edge-capacity @(edges i))]
-	(let [ve (node-excess @(nodes v))]
-	(if debug
-		(do
-			(println "--------- after push -------------------")
-			(println "i = " i)
-			(println "u = " u)
-			(println "uh = " uh)
-			(println "e = " e)
-			(println "f = " f)
-			(println "c = " c)
-			(println "v = " v)
-			(println "vh = " vh)
-			(println "ve = " ve)
-			(println "--------- Done with push ---------------")))))))))))
-
-
-
-
-	(assert (>= (node-excess @(nodes u)) 0))
-	(assert (<= (abs (edge-flow @(edges i))) (edge-capacity @(edges i))))
-
-	(if (has-excess u nodes)
-		(do (check-insert excess-nodes u s t)
-			(if debug (println "try put node" u " back after push"))))
-
-	(if (has-excess v nodes)
-		(do (check-insert excess-nodes v s t)
-		(if debug (println "try put node" v " in excess after push")))))))))))))
-
-(defn flower [edge u]
-	(if (u-is-edge-u edge u) 
-	(do 1)
-	(do -1)))
+			(println "vh = " vh)))))))))))
 
 
 ; go through adjacency-list of source and push
@@ -146,8 +88,7 @@
 	(if (not (empty? adj))
 		(do 
 			; give source this capacity as excess so the push will be accepted
-			(ref-set (nodes s) (update @(nodes s) :e + (edge-capacity @(edges (first adj)))))
-			(push (first adj) s nodes edges excess-nodes s t)
+			(push (first adj) s nodes edges excess-nodes change s t)
 			(initial-push (rest adj) s t nodes edges excess-nodes)))))
 
 (defn initial-pushes [nodes edges s t excess-nodes]
@@ -181,62 +122,11 @@
 
 (def edges (vec (for [i (range m)] (ref (->edge 0 0 0 0)))))
 
-
-
-(defn relabel [nodes u]
-    (ref-set (nodes u) (update @(nodes u) :h + 1))
-    (if debug (println "Relabling "u))
-    (check-insert excess-nodes u s t)
-)
-
-
-(defn activate [adj u nodes edges s t excess-nodes]
-	(if(empty? adj)
-			(do
-			0)
-	
-			(do
-				(let [b (flower @(edges (first adj)) u)]
-						(let [v (other @(edges (first adj)) u)]
-						
-						(if debug
-						(do
-						(println "----- push check -----")
-						(println "b = "b)
-						(println "Node height u: " (node-height @(nodes u) ) " v:" (node-height @(nodes v)))
-						(println "Flow*b: "(* b (edge-flow @(edges (first adj)))) " cap: "(edge-capacity @(edges (first adj))))))
-						
-						(if (and (> (node-height @(nodes u) )  (node-height @(nodes v)))  (< (*  b (edge-flow @(edges (first adj)))) (edge-capacity @(edges (first adj))) ) )
-							(do
-									(push (first adj) u nodes edges excess-nodes s t )
-										1)
-
-							(do
-								(recur (rest adj) u nodes edges  s t excess-nodes))))))))
-							
-
-	(defn activateNode [ u nodes edges s t excess-nodes]
-		(let [cond (activate (node-adj @(nodes u)) u nodes edges s t excess-nodes)]
-
-		(if(== cond 0)
-		(do
-		(relabel nodes u)))))
-
-	(defn work [ nodes edges s t excess-nodes]
-		(let [u (remove-any excess-nodes)]
-		(if debug(println "Took out "u))
-
-		(if (not(= u -1))
-		(do 
-		(activateNode u nodes edges s t excess-nodes)
-		(recur nodes edges s t excess-nodes)))))
-
 (dosync (read-graph 0 m nodes edges))
 
 (defn preflow []
 
 	(dosync (initial-pushes nodes edges s t excess-nodes))
-	(dosync (work nodes edges s t excess-nodes))
 
 	(println "f =" (node-excess @(nodes t))))
 

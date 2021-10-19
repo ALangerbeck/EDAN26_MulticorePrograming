@@ -39,7 +39,7 @@
 #define PRINT		0	/* enable/disable prints. */
 
 //GLOBALS
-#define NUMBER_OF_THREADS  (2)
+#define NUMBER_OF_THREADS  (9)
 
 #define N       10000ULL
 

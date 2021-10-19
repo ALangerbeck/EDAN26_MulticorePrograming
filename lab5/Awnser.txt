@@ -1,0 +1,3 @@
+Q.1 pekare kan bara ägas av ett object. Flyttas så förvinner gamla referensen eller den går ut ur scope. Lånar så går den tillbaka efter scope.
+
+Q.2 ARC delar ut kloner av object som när de sedan ändras ochså ändrar huvudreferensen men atomically. 
