@@ -65,8 +65,9 @@
 	(ref-set excess-nodes (cons v @excess-nodes))))
 
 (defn check-insert [excess-nodes v s t]
+(dosync
 	(if (and (not= v s) (not= v t))
-		(insert excess-nodes v)))
+		(insert excess-nodes v))))
 
 (defn push [edge-index u nodes edges excess-nodes s t]
 	(let [v 	(other @(edges edge-index) u)]
@@ -127,9 +128,9 @@
 
 
 
-	(dosync
+	
 	(assert (>= (node-excess @(nodes u)) 0))
-	(assert (<= (abs (edge-flow @(edges i))) (edge-capacity @(edges i)))))
+	(assert (<= (abs (edge-flow @(edges i))) (edge-capacity @(edges i))))
 
 	(if (has-excess u nodes)
 		(do (check-insert excess-nodes u s t)
@@ -212,7 +213,7 @@
 						(println "Flow*b: "(* b (edge-flow @(edges (first adj)))) " cap: "(edge-capacity @(edges (first adj))))))
 						
 						(if (and (> (node-height @(nodes u) )  (node-height @(nodes v)))  (< (*  b (edge-flow @(edges (first adj)))) (edge-capacity @(edges (first adj))) ) )
-							(do
+							(dosync
 									(push (first adj) u nodes edges excess-nodes s t )
 										1)
 
@@ -236,7 +237,7 @@
 		(activateNode u nodes edges s t excess-nodes)
 		(recur nodes edges s t excess-nodes)))))
 
-	(defn doDaWork [] (dosync (work nodes edges s t excess-nodes)))
+	(defn doDaWork []  (work nodes edges s t excess-nodes))
 
 (dosync (read-graph 0 m nodes edges))
 
